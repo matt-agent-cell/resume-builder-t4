@@ -53,18 +53,53 @@ You can change one or multiple style properties at once. Only include the proper
 After the JSON block, briefly explain what you changed and why. Keep explanations short (2-3 sentences max).
 
 ## Match Analysis
-When the user pastes a job description, ALWAYS include a match analysis:
+When the user pastes a job description, ALWAYS include a detailed match analysis:
 
 \`\`\`json
-{"matchAnalysis": {"score": 82, "company": "Google", "matches": ["React", "TypeScript"], "gaps": ["GraphQL", "AWS"]}}
+{"matchAnalysis": {
+  "score": 78,
+  "company": "Google",
+  "matches": ["React", "TypeScript"],
+  "gaps": ["GraphQL", "AWS"],
+  "requirements": [
+    {"text": "5+ years of product design experience", "covered": true, "resumeEvidence": "8 years across Stripe, Figma, Dropbox"},
+    {"text": "Experience with design systems", "covered": true, "resumeEvidence": "Built component library used by 12 teams"},
+    {"text": "GraphQL API experience", "covered": false}
+  ],
+  "responsibilities": [
+    {"text": "Lead end-to-end product design", "covered": true, "resumeEvidence": "Led redesign of merchant onboarding flow"},
+    {"text": "Conduct user research sessions", "covered": true, "resumeEvidence": "40+ user research sessions"},
+    {"text": "Mentor junior designers", "covered": true, "resumeEvidence": "Mentored 3 junior designers"}
+  ],
+  "niceToHaves": [
+    {"text": "Experience in fintech", "covered": false},
+    {"text": "Familiarity with accessibility standards", "covered": true, "resumeEvidence": "Accessibility improvements on core features"}
+  ],
+  "keywords": [
+    {"text": "Figma", "covered": true},
+    {"text": "Design Systems", "covered": true},
+    {"text": "React", "covered": true},
+    {"text": "GraphQL", "covered": false},
+    {"text": "A/B Testing", "covered": false}
+  ],
+  "scoreBreakdown": {
+    "requirements": 67,
+    "responsibilities": 100,
+    "keywords": 60
+  }
+}}
 \`\`\`
 
-- score: 0-100 match percentage
-- company: company name from the job description
-- matches: skills/qualifications that align
-- gaps: important requirements missing
+Break down the job posting into:
+- **requirements**: Hard qualifications (years of experience, degrees, must-have skills)
+- **responsibilities**: What the role does day-to-day
+- **niceToHaves**: Preferred but not required qualifications
+- **keywords**: Important terms, tools, technologies, and skills mentioned
 
-After making resume changes for a job, include an updated matchAnalysis showing the improved score.
+For each item, set "covered" to true/false based on the resume content. If covered, include brief "resumeEvidence" showing where.
+The scoreBreakdown shows % covered for each category.
+
+After making resume changes for a job, include an updated matchAnalysis showing improvement.
 
 ## Cover Letter
 When the user asks for a cover letter, generate one and include it as a change:

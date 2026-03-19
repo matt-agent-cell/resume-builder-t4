@@ -262,7 +262,7 @@ export default function ChatPanel() {
                   {/* Changes applied badge */}
                   {hadChanges && (
                     <div className="mt-3">
-                      <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-50 text-emerald-600 text-xs font-medium">
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#DBF0EA] text-[#005149] text-xs font-medium">
                         <CheckCircle2 className="w-3.5 h-3.5" />
                         Changes applied to resume
                       </span>

@@ -4,8 +4,21 @@ import React, { createContext, useContext, useState, useCallback, type ReactNode
 
 /* ── Data types ── */
 
+export interface BulletVersion {
+  text: string;
+  timestamp: number;
+  source: string; // e.g. "original", "AlexChen-Google-Resume", session name
+}
+
+export interface VaultBullet {
+  current: string;
+  history: BulletVersion[];
+}
+
 export interface VaultExperience {
-  id: string; title: string; company: string; location: string; dateRange: string; bullets: string[];
+  id: string; title: string; company: string; location: string; dateRange: string;
+  bullets: string[]; // kept for backward compat & simple access
+  bulletHistory?: VaultBullet[]; // full version history per bullet
 }
 export interface VaultEducation {
   id: string; degree: string; school: string; dateRange: string; gpa?: string;
@@ -51,7 +64,29 @@ export interface ResumeData {
 }
 
 export interface ChatMessage { role: "user" | "assistant"; content: string; }
-export interface MatchAnalysis { score: number; matches: string[]; gaps: string[]; company?: string; }
+export interface MatchItem {
+  text: string;
+  covered: boolean; // true = conveyed on resume, false = gap
+  resumeEvidence?: string; // brief note of where/how it's covered
+}
+
+export interface MatchAnalysis {
+  score: number;
+  company?: string;
+  // Legacy (kept for backward compat)
+  matches: string[];
+  gaps: string[];
+  // Structured breakdown
+  requirements?: MatchItem[];
+  responsibilities?: MatchItem[];
+  niceToHaves?: MatchItem[];
+  keywords?: MatchItem[];
+  scoreBreakdown?: {
+    requirements: number; // % covered
+    responsibilities: number;
+    keywords: number;
+  };
+}
 
 export interface CoverLetter {
   greeting: string;
@@ -150,7 +185,21 @@ export function ResumeProvider({ children }: { children: ReactNode }) {
   const setShowPreview = useCallback((showPreview: boolean) => setState((s) => ({ ...s, showPreview })), []);
   const setSidebarView = useCallback((sidebarView: "chat" | "vault") => setState((s) => ({ ...s, sidebarView })), []);
 
-  const setVault = useCallback((vault: CareerVault) => setState((s) => ({ ...s, vault })), []);
+  const setVault = useCallback((vault: CareerVault) => {
+    // Initialize bulletHistory for any experiences that don't have it
+    const now = Date.now();
+    const enriched = {
+      ...vault,
+      experience: vault.experience.map((exp) => ({
+        ...exp,
+        bulletHistory: exp.bulletHistory || exp.bullets.map((b) => ({
+          current: b,
+          history: [{ text: b, timestamp: now, source: "original" }],
+        })),
+      })),
+    };
+    setState((s) => ({ ...s, vault: enriched }));
+  }, []);
   const updateVault = useCallback((fn: (v: CareerVault) => CareerVault) => {
     setState((s) => s.vault ? { ...s, vault: fn(s.vault) } : s);
   }, []);
@@ -236,26 +285,64 @@ export function ResumeProvider({ children }: { children: ReactNode }) {
     });
   }, [updateActiveSession]);
 
-  const syncToVault = useCallback((resume: ResumeData) => {
+  const syncToVault = useCallback((resume: ResumeData, sessionName?: string) => {
     setState((s) => {
       if (!s.vault) return s;
-      const v = { ...s.vault };
-      // Merge new experiences not in vault
+      const v = { ...s.vault, experience: s.vault.experience.map((e) => ({ ...e })) };
+      const source = sessionName || "AI Edit";
+      const now = Date.now();
+
       for (const exp of resume.experience) {
-        if (!v.experience.find((e) => e.id === exp.id)) {
-          v.experience.push({ ...exp });
+        const vaultExp = v.experience.find((e) => e.id === exp.id);
+        if (!vaultExp) {
+          // New experience — add with initial history
+          v.experience.push({
+            ...exp,
+            bulletHistory: exp.bullets.map((b) => ({
+              current: b,
+              history: [{ text: b, timestamp: now, source: "original" }],
+            })),
+          });
+        } else {
+          // Existing experience — check each bullet for changes
+          const updatedHistory = [...(vaultExp.bulletHistory || [])];
+
+          for (let i = 0; i < exp.bullets.length; i++) {
+            const newText = exp.bullets[i];
+            if (i < updatedHistory.length) {
+              // Existing bullet — add version if changed
+              if (updatedHistory[i].current !== newText) {
+                updatedHistory[i] = {
+                  current: newText,
+                  history: [...updatedHistory[i].history, { text: newText, timestamp: now, source }],
+                };
+              }
+            } else {
+              // New bullet added
+              updatedHistory.push({
+                current: newText,
+                history: [{ text: newText, timestamp: now, source }],
+              });
+            }
+          }
+
+          vaultExp.bullets = exp.bullets;
+          vaultExp.bulletHistory = updatedHistory;
         }
       }
+
       // Merge new skills
       const skillSet = new Set(v.skills);
       for (const sk of resume.skills) { skillSet.add(sk); }
       v.skills = Array.from(skillSet);
+
       // Merge education
       for (const edu of resume.education) {
         if (!v.education.find((e) => e.id === edu.id)) {
           v.education.push({ ...edu });
         }
       }
+
       return { ...s, vault: v };
     });
   }, []);
@@ -291,6 +378,58 @@ export function ResumeProvider({ children }: { children: ReactNode }) {
       }
       return { ...s, resume: r, coverLetter: cl };
     });
+
+    // Sync changes to vault (deferred to next tick so state is updated)
+    setTimeout(() => {
+      setState((s) => {
+        const active = s.sessions.find((ses) => ses.id === s.activeSessionId);
+        if (!active || !s.vault) return s;
+        // Run sync logic inline
+        const v = { ...s.vault, experience: s.vault.experience.map((e) => ({ ...e })) };
+        const source = active.name || "AI Edit";
+        const now = Date.now();
+        const resume = active.resume;
+
+        for (const exp of resume.experience) {
+          const vaultExp = v.experience.find((e) => e.id === exp.id);
+          if (!vaultExp) {
+            v.experience.push({
+              ...exp,
+              bulletHistory: exp.bullets.map((b) => ({
+                current: b,
+                history: [{ text: b, timestamp: now, source: "original" }],
+              })),
+            });
+          } else {
+            const updatedHistory = [...(vaultExp.bulletHistory || [])];
+            for (let i = 0; i < exp.bullets.length; i++) {
+              const newText = exp.bullets[i];
+              if (i < updatedHistory.length) {
+                if (updatedHistory[i].current !== newText) {
+                  updatedHistory[i] = {
+                    current: newText,
+                    history: [...updatedHistory[i].history, { text: newText, timestamp: now, source }],
+                  };
+                }
+              } else {
+                updatedHistory.push({
+                  current: newText,
+                  history: [{ text: newText, timestamp: now, source }],
+                });
+              }
+            }
+            vaultExp.bullets = exp.bullets;
+            vaultExp.bulletHistory = updatedHistory;
+          }
+        }
+
+        const skillSet = new Set(v.skills);
+        for (const sk of resume.skills) { skillSet.add(sk); }
+        v.skills = Array.from(skillSet);
+
+        return { ...s, vault: v };
+      });
+    }, 100);
   }, [updateActiveSession]);
 
   const setCoverLetter = useCallback((cl: CoverLetter) => {
