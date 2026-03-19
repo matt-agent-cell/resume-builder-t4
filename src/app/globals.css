@@ -1,0 +1,53 @@
+@import "tailwindcss";
+
+body { background: #fafaf9; }
+
+/* Custom scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #d6d3d1; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #a8a29e; }
+
+/* Highlight animation for resume updates */
+@keyframes highlightFade {
+  0% { background-color: rgba(0, 81, 73, 0.15); }
+  100% { background-color: transparent; }
+}
+.highlight-update { animation: highlightFade 2s ease-out forwards; border-radius: 4px; }
+
+/* Fade in */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+
+/* Typing dots */
+@keyframes bounce {
+  0%, 80%, 100% { transform: scale(0); }
+  40% { transform: scale(1); }
+}
+.typing-dot { animation: bounce 1.4s infinite ease-in-out both; }
+.typing-dot:nth-child(1) { animation-delay: -0.32s; }
+.typing-dot:nth-child(2) { animation-delay: -0.16s; }
+
+/* Toast slide in */
+@keyframes slideInRight {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+.toast-enter { animation: slideInRight 0.3s ease-out forwards; }
+
+/* Score animation */
+@keyframes drawCircle {
+  from { stroke-dashoffset: 314; }
+}
+.animate-score { animation: drawCircle 1.5s ease-out forwards; }
+
+/* Resume section highlight pulse */
+@keyframes resumeHighlight {
+  0% { background-color: rgba(0, 81, 73, 0.12); box-shadow: 0 0 0 2px rgba(0, 81, 73, 0.2); }
+  50% { background-color: rgba(0, 81, 73, 0.06); box-shadow: 0 0 0 2px rgba(0, 81, 73, 0.1); }
+  100% { background-color: transparent; box-shadow: 0 0 0 0 transparent; }
+}
+.resume-highlight { animation: resumeHighlight 3s ease-out forwards; }
