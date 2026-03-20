@@ -3,17 +3,16 @@
 import { useState } from "react";
 import { useResume } from "@/context/resume-context";
 import { defaultStyles } from "@/context/resume-context";
-import { Download, Palette } from "lucide-react";
+import { Palette } from "lucide-react";
 import InlineEdit from "./inline-edit";
-import ExportModal from "./export-modal";
 import CoverLetterPreview from "./cover-letter-preview";
 
 /* ── Shared section renderers ── */
 
-function ExperienceBlock({ resume, updateResume, hl, headingStyles, sectionGap, basePx, textColor, bulletChar }: {
+function ExperienceBlock({ resume, updateResume, hl, headingStyles, sectionGap, basePx, textColor, bulletChar, dateAlign }: {
   resume: import("@/context/resume-context").ResumeData;
   updateResume: (fn: (r: import("@/context/resume-context").ResumeData) => import("@/context/resume-context").ResumeData) => void;
-  hl: (k: string) => string; headingStyles: React.CSSProperties; sectionGap: number; basePx: number; textColor: string; bulletChar: string;
+  hl: (k: string) => string; headingStyles: React.CSSProperties; sectionGap: number; basePx: number; textColor: string; bulletChar: string; dateAlign: string;
 }) {
   if (resume.experience.length === 0) return null;
   return (
@@ -69,7 +68,7 @@ function SkillsBlock({ resume, skillStyle, basePx, textColor, accentColor }: {
           <div key={i} className="flex items-center gap-2">
             <span style={{ fontSize: `${basePx * 0.83}px`, width: 80 }} className="shrink-0">{skill}</span>
             <div className="flex-1 h-1.5 rounded-full" style={{ backgroundColor: `${accentColor}15` }}>
-              <div className="h-full rounded-full" style={{ backgroundColor: accentColor, width: `${70 + Math.random() * 30}%` }} />
+              <div className="h-full rounded-full" style={{ backgroundColor: accentColor, width: `${70 + ((i * 17 + 7) % 30)}%` }} />
             </div>
           </div>
         ))}
@@ -92,7 +91,6 @@ function SkillsBlock({ resume, skillStyle, basePx, textColor, accentColor }: {
 
 export default function ResumePreview({ onDesignClick }: { onDesignClick?: () => void }) {
   const { resume, updateResume, highlightedSections, coverLetter } = useResume();
-  const [exportOpen, setExportOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<"resume" | "coverLetter">("resume");
 
   const hl = (key: string) =>
@@ -249,7 +247,7 @@ export default function ResumePreview({ onDesignClick }: { onDesignClick?: () =>
                   <InlineEdit value={resume.summary} onSave={(v) => updateResume((r) => ({ ...r, summary: v }))} multiline className="leading-relaxed" />
                 </div>
               )}
-              <ExperienceBlock {...{ resume, updateResume, hl, headingStyles, sectionGap, basePx, textColor, bulletChar }} />
+              <ExperienceBlock {...{ resume, updateResume, hl, headingStyles, sectionGap, basePx, textColor, bulletChar, dateAlign }} />
             </div>
           </div>
         ) : (
@@ -262,7 +260,7 @@ export default function ResumePreview({ onDesignClick }: { onDesignClick?: () =>
               </div>
             )}
 
-            <ExperienceBlock {...{ resume, updateResume, hl, headingStyles, sectionGap, basePx, textColor, bulletChar }} />
+            <ExperienceBlock {...{ resume, updateResume, hl, headingStyles, sectionGap, basePx, textColor, bulletChar, dateAlign }} />
 
             {/* Education */}
             {resume.education.length > 0 && showEducation && (
@@ -315,15 +313,7 @@ export default function ResumePreview({ onDesignClick }: { onDesignClick?: () =>
         </button>
       )}
 
-      {/* Floating export button */}
-      <button
-        onClick={() => setExportOpen(true)}
-        className="absolute bottom-5 right-5 w-11 h-11 rounded-full bg-[#005149] text-white shadow-lg hover:bg-[#003d38] transition-all hover:scale-105 flex items-center justify-center"
-      >
-        <Download className="w-4 h-4" />
-      </button>
-
-      <ExportModal isOpen={exportOpen} onClose={() => setExportOpen(false)} />
+      {/* Export via top nav download button */}
       </div>
     </div>
   );
