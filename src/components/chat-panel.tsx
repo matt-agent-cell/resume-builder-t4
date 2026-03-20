@@ -3,11 +3,14 @@
 import { useState, useRef, useEffect } from "react";
 import { useResume } from "@/context/resume-context";
 import { Send, ThumbsUp, ThumbsDown, Copy, CheckCircle2 } from "lucide-react";
+import { InlineDesignWidget, parseDesignWidgets } from "./inline-design-controls";
 
 function stripJsonBlocks(text: string): { cleaned: string; hadChanges: boolean } {
   if (!text) return { cleaned: text, hadChanges: false };
-  const cleaned = text.replace(/```json\s*\{[\s\S]*?\}\s*```/g, "").trim();
-  const hadChanges = text !== cleaned && (text.includes('"resumeUpdate"') || text.includes('"coverLetter"'));
+  const noJson = text.replace(/```json\s*\{[\s\S]*?\}\s*```/g, "").trim();
+  const hadChanges = text !== noJson && (text.includes('"resumeUpdate"') || text.includes('"coverLetter"'));
+  // Keep {{design:xxx}} tags — they'll be parsed by parseDesignWidgets
+  const cleaned = noJson;
   return { cleaned, hadChanges };
 }
 
@@ -247,16 +250,29 @@ export default function ChatPanel() {
               const { cleaned, hadChanges } = stripJsonBlocks(msg.content);
               const followUps = isLastAssistant ? getFollowUpPrompts(cleaned, hadChanges) : [];
 
+              const { parts } = parseDesignWidgets(cleaned);
+              const hasWidgets = parts.some((p) => p.type === "widget");
+
               return (
                 <div key={i} className="animate-fade-in">
-                  <div className="text-sm text-stone-700 leading-relaxed whitespace-pre-wrap">
-                    {cleaned || (streaming && isLast ? (
+                  <div className="text-sm text-stone-700 leading-relaxed">
+                    {!cleaned && streaming && isLast ? (
                       <span className="flex items-center gap-1.5 py-2">
                         <span className="w-2 h-2 bg-stone-300 rounded-full typing-dot" />
                         <span className="w-2 h-2 bg-stone-300 rounded-full typing-dot" />
                         <span className="w-2 h-2 bg-stone-300 rounded-full typing-dot" />
                       </span>
-                    ) : "")}
+                    ) : hasWidgets ? (
+                      parts.map((part, pi) =>
+                        part.type === "widget" ? (
+                          <InlineDesignWidget key={pi} widgetId={part.content} />
+                        ) : (
+                          <span key={pi} className="whitespace-pre-wrap">{part.content}</span>
+                        )
+                      )
+                    ) : (
+                      <span className="whitespace-pre-wrap">{cleaned}</span>
+                    )}
                   </div>
 
                   {/* Changes applied badge */}

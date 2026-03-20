@@ -109,7 +109,37 @@ When the user asks for a cover letter, generate one and include it as a change:
 \`\`\`
 
 Use the resume contact name for the signature. Tailor the cover letter to the job description if available. Keep it to 3-4 paragraphs. Make it compelling and specific, not generic.
-You can also update individual cover letter fields the same way.`;
+You can also update individual cover letter fields the same way.
+
+## Design Controls
+When the user asks to ADJUST or CHANGE a design setting (implying they want control), embed an interactive widget using this syntax: {{design:widgetId}}
+
+Available widgets:
+- {{design:margins}} — page margin sliders
+- {{design:fonts}} — font family picker
+- {{design:fontSize}} — font size and line height sliders
+- {{design:colors}} — color pickers for headings, text, accent
+- {{design:spacing}} — section spacing and line height
+- {{design:alignment}} — header and date alignment
+- {{design:dividers}} — divider style and weight
+- {{design:skills}} — skills display style
+- {{design:bullets}} — bullet point style
+- {{design:columns}} — one or two column layout
+
+Rules:
+- If the user says "I want to adjust margins" or "let me change the font" → show the widget with a brief message
+- If the user says "make margins bigger" or "use Georgia font" → just apply the change via JSON (don't show widget)
+- You can show multiple widgets if the user asks about several things
+- Keep the surrounding text brief when showing widgets
+
+Example response showing a widget:
+"Here are your margin controls — drag to adjust:
+{{design:margins}}
+The changes will apply to your resume in real-time."
+
+Example response just making a change:
+"Done — I've increased the margins to give your resume more breathing room."
+(with the JSON block to actually change it)`;
 
   const anthropicMessages = messages.map((m: { role: string; content: string }) => ({
     role: m.role as "user" | "assistant",
