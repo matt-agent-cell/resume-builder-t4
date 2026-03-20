@@ -9,6 +9,7 @@ import VaultEditor from "@/components/vault-editor";
 import ExportModal from "@/components/export-modal";
 import CompareView from "@/components/compare-view";
 import MatchPanel from "@/components/match-panel";
+import DesignPanel from "@/components/design-panel";
 import { useState } from "react";
 import { Download, Eye, EyeOff, Settings, GitCompareArrows } from "lucide-react";
 
@@ -34,7 +35,7 @@ function AppContent() {
   };
 
   // When sidebar view changes externally
-  const effectiveRightPanel = sidebarView === "vault" ? "vault" : rightPanel;
+  const effectiveRightPanel = sidebarView === "vault" ? "vault" : sidebarView === "design" ? "resume" : rightPanel;
 
   if (step !== "chat") {
     return <Onboarding />;
@@ -135,9 +136,9 @@ function AppContent() {
             </div>
           ) : (
             <>
-              {/* Left: always chat */}
+              {/* Left: chat or design panel */}
               <div className={hasRightPanel ? "w-1/2" : "w-full"}>
-                <ChatPanel />
+                {sidebarView === "design" ? <DesignPanel /> : <ChatPanel />}
               </div>
               {/* Right panel */}
               {effectiveRightPanel === "vault" && (

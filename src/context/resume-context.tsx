@@ -41,6 +41,11 @@ export interface ResumeStyles {
   lineHeight?: number;
   sectionSpacing?: number; // in px
   borderStyle?: "solid" | "double" | "none";
+  headerAlign?: "left" | "center";
+  nameSize?: number; // multiplier for name (e.g. 1.67 = default)
+  margins?: number; // page margins in px
+  skillStyle?: "pills" | "tags" | "comma" | "bars";
+  bulletStyle?: "disc" | "dash" | "arrow" | "none";
 }
 
 export const defaultStyles: ResumeStyles = {
@@ -52,6 +57,11 @@ export const defaultStyles: ResumeStyles = {
   lineHeight: 1.5,
   sectionSpacing: 20,
   borderStyle: "solid",
+  headerAlign: "left",
+  nameSize: 1.67,
+  margins: 32,
+  skillStyle: "pills",
+  bulletStyle: "disc",
 };
 
 export interface ResumeData {
@@ -117,7 +127,7 @@ interface AppState {
   sessions: ResumeSession[];
   activeSessionId: string | null;
   showPreview: boolean;
-  sidebarView: "chat" | "vault";
+  sidebarView: "chat" | "vault" | "design";
 }
 
 /* ── Context value ── */
@@ -146,7 +156,7 @@ interface Ctx extends AppState {
   setResume: (r: ResumeData) => void;
   applyResumeChanges: (changes: { section: string; id?: string; field?: string; value: unknown }[]) => void;
   setShowPreview: (b: boolean) => void;
-  setSidebarView: (v: "chat" | "vault") => void;
+  setSidebarView: (v: "chat" | "vault" | "design") => void;
   // Vault sync: push new data from resume edits into vault
   syncToVault: (resume: ResumeData) => void;
   highlightedSections: Set<string>;
@@ -183,7 +193,7 @@ export function ResumeProvider({ children }: { children: ReactNode }) {
   /* ── Setters ── */
   const setStep = useCallback((step: Step) => setState((s) => ({ ...s, step })), []);
   const setShowPreview = useCallback((showPreview: boolean) => setState((s) => ({ ...s, showPreview })), []);
-  const setSidebarView = useCallback((sidebarView: "chat" | "vault") => setState((s) => ({ ...s, sidebarView })), []);
+  const setSidebarView = useCallback((sidebarView: "chat" | "vault" | "design") => setState((s) => ({ ...s, sidebarView })), []);
 
   const setVault = useCallback((vault: CareerVault) => {
     // Initialize bulletHistory for any experiences that don't have it
