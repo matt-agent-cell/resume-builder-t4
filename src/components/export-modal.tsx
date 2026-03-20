@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useResume } from "@/context/resume-context";
 import { X, Download, Copy, Check } from "lucide-react";
+import { exportResumePdf } from "@/utils/export-pdf";
 
 interface ExportModalProps {
   isOpen: boolean;
@@ -31,7 +32,7 @@ const templates = [
 ];
 
 export default function ExportModal({ isOpen, onClose }: ExportModalProps) {
-  const { resume } = useResume();
+  const { resume, coverLetter } = useResume();
   const [selected, setSelected] = useState("clean");
   const [copied, setCopied] = useState(false);
 
@@ -113,7 +114,10 @@ export default function ExportModal({ isOpen, onClose }: ExportModalProps) {
 
         {/* Actions */}
         <div className="flex gap-3">
-          <button className="flex-1 bg-[#005149] text-white py-2.5 rounded-xl font-medium text-sm hover:bg-[#003d38] transition-colors flex items-center justify-center gap-2">
+          <button
+            onClick={() => { if (resume) exportResumePdf(resume, coverLetter); onClose(); }}
+            className="flex-1 bg-[#005149] text-white py-2.5 rounded-xl font-medium text-sm hover:bg-[#003d38] transition-colors flex items-center justify-center gap-2"
+          >
             <Download className="w-4 h-4" />
             Download PDF
           </button>
