@@ -8,6 +8,88 @@ import InlineEdit from "./inline-edit";
 import ExportModal from "./export-modal";
 import CoverLetterPreview from "./cover-letter-preview";
 
+/* ── Shared section renderers ── */
+
+function ExperienceBlock({ resume, updateResume, hl, headingStyles, sectionGap, basePx, textColor, bulletChar }: {
+  resume: import("@/context/resume-context").ResumeData;
+  updateResume: (fn: (r: import("@/context/resume-context").ResumeData) => import("@/context/resume-context").ResumeData) => void;
+  hl: (k: string) => string; headingStyles: React.CSSProperties; sectionGap: number; basePx: number; textColor: string; bulletChar: string;
+}) {
+  if (resume.experience.length === 0) return null;
+  return (
+    <div style={{ marginBottom: sectionGap }}>
+      <h2 style={headingStyles}>Experience</h2>
+      {resume.experience.map((exp) => (
+        <div key={exp.id} className={hl(`experience-${exp.id}`)} style={{ marginBottom: 14 }}>
+          <div className="flex justify-between items-baseline">
+            <div className="flex items-baseline gap-1">
+              <InlineEdit value={exp.title}
+                onSave={(v) => updateResume((r) => ({ ...r, experience: r.experience.map((e) => e.id === exp.id ? { ...e, title: v } : e) }))}
+                className="font-semibold" />
+              <span className="text-stone-300">·</span>
+              <InlineEdit value={exp.company}
+                onSave={(v) => updateResume((r) => ({ ...r, experience: r.experience.map((e) => e.id === exp.id ? { ...e, company: v } : e) }))}
+                style={{ color: `${textColor}99` }} />
+            </div>
+            <InlineEdit value={exp.dateRange}
+              onSave={(v) => updateResume((r) => ({ ...r, experience: r.experience.map((e) => e.id === exp.id ? { ...e, dateRange: v } : e) }))}
+              className="whitespace-nowrap ml-2"
+              style={{ fontSize: `${basePx * 0.83}px`, color: `${textColor}77` }} />
+          </div>
+          <ul className="mt-1 space-y-0.5 ml-3">
+            {exp.bullets.map((bullet, bi) => (
+              <li key={bi} className="flex gap-1.5">
+                {bulletChar && <span style={{ color: `${textColor}66` }} className="mt-px">{bulletChar}</span>}
+                <InlineEdit value={bullet}
+                  onSave={(v) => {
+                    updateResume((r) => ({ ...r, experience: r.experience.map((e) =>
+                      e.id === exp.id ? { ...e, bullets: e.bullets.map((b, i) => i === bi ? v : b) } : e
+                    ) }));
+                  }} />
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function SkillsBlock({ resume, skillStyle, basePx, textColor, accentColor }: {
+  resume: import("@/context/resume-context").ResumeData;
+  skillStyle: string; basePx: number; textColor: string; accentColor: string;
+}) {
+  if (skillStyle === "comma") {
+    return <p style={{ fontSize: `${basePx * 0.83}px`, color: textColor }}>{resume.skills.join(", ")}</p>;
+  }
+  if (skillStyle === "bars") {
+    return (
+      <div className="space-y-1.5">
+        {resume.skills.map((skill, i) => (
+          <div key={i} className="flex items-center gap-2">
+            <span style={{ fontSize: `${basePx * 0.83}px`, width: 80 }} className="shrink-0">{skill}</span>
+            <div className="flex-1 h-1.5 rounded-full" style={{ backgroundColor: `${accentColor}15` }}>
+              <div className="h-full rounded-full" style={{ backgroundColor: accentColor, width: `${70 + Math.random() * 30}%` }} />
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  }
+  return (
+    <div className="flex flex-wrap gap-1.5">
+      {resume.skills.map((skill, i) => (
+        <span key={i} style={{
+          backgroundColor: skillStyle === "tags" ? "transparent" : `${accentColor}15`,
+          color: accentColor, fontSize: `${basePx * 0.83}px`,
+          border: skillStyle === "tags" ? `1px solid ${accentColor}33` : "none",
+          borderRadius: skillStyle === "tags" ? 4 : 9999,
+        }} className="font-medium px-2.5 py-1">{skill}</span>
+      ))}
+    </div>
+  );
+}
+
 export default function ResumePreview({ onDesignClick }: { onDesignClick?: () => void }) {
   const { resume, updateResume, highlightedSections, coverLetter } = useResume();
   const [exportOpen, setExportOpen] = useState(false);
@@ -40,6 +122,7 @@ export default function ResumePreview({ onDesignClick }: { onDesignClick?: () =>
   const showSummary = s.showSummary !== false;
   const showSkills = s.showSkills !== false;
   const showEducation = s.showEducation !== false;
+  const isTwoCol = s.columns === 2;
 
   const headingStyles: React.CSSProperties = {
     fontSize: `${basePx * headingMult}px`, fontWeight: 700, color: headingColor,
@@ -107,131 +190,103 @@ export default function ResumePreview({ onDesignClick }: { onDesignClick?: () =>
           </div>
         </div>
 
-        {/* Summary */}
-        {resume.summary && showSummary && (
-          <div className={hl("summary")} style={{ marginBottom: sectionGap }}>
-            <h2 style={headingStyles}>Summary</h2>
-            <InlineEdit
-              value={resume.summary}
-              onSave={(v) => updateResume((r) => ({ ...r, summary: v }))}
-              multiline
-              className="leading-relaxed"
-            />
-          </div>
-        )}
-
-        {/* Experience */}
-        {resume.experience.length > 0 && (
-          <div style={{ marginBottom: sectionGap }}>
-            <h2 style={headingStyles}>Experience</h2>
-            {resume.experience.map((exp) => (
-              <div key={exp.id} className={hl(`experience-${exp.id}`)} style={{ marginBottom: 14 }}>
-                <div className="flex justify-between items-baseline">
-                  <div className="flex items-baseline gap-1">
-                    <InlineEdit
-                      value={exp.title}
-                      onSave={(v) => updateResume((r) => ({ ...r, experience: r.experience.map((e) => e.id === exp.id ? { ...e, title: v } : e) }))}
-                      className="font-semibold"
-                    />
-                    <span className="text-stone-300">·</span>
-                    <InlineEdit
-                      value={exp.company}
-                      onSave={(v) => updateResume((r) => ({ ...r, experience: r.experience.map((e) => e.id === exp.id ? { ...e, company: v } : e) }))}
-                      style={{ color: `${textColor}99` }}
-                    />
-                  </div>
-                  <InlineEdit
-                    value={exp.dateRange}
-                    onSave={(v) => updateResume((r) => ({ ...r, experience: r.experience.map((e) => e.id === exp.id ? { ...e, dateRange: v } : e) }))}
-                    className="whitespace-nowrap ml-2"
-                    style={{ fontSize: `${basePx * 0.83}px`, color: `${textColor}77` }}
-                  />
+        {/* Sections — single or two-column */}
+        {isTwoCol ? (
+          <div className="flex gap-5">
+            {/* Left sidebar */}
+            <div style={{ width: "32%", borderRight: `1px solid ${s.dividerColor || headingColor + "22"}`, paddingRight: sectionGap * 0.75 }}>
+              {/* Contact details stacked */}
+              <div style={{ marginBottom: sectionGap }}>
+                <h2 style={headingStyles}>Contact</h2>
+                <div className="space-y-1" style={{ fontSize: `${basePx * 0.83}px` }}>
+                  {resume.contact.email && <p>{resume.contact.email}</p>}
+                  {resume.contact.phone && <p>{resume.contact.phone}</p>}
+                  {resume.contact.location && <p>{resume.contact.location}</p>}
+                  {resume.contact.linkedin && <p style={{ color: accentColor }}>{resume.contact.linkedin}</p>}
                 </div>
-                <ul className="mt-1 space-y-0.5 ml-3">
-                  {exp.bullets.map((bullet, bi) => (
-                    <li key={bi} className="flex gap-1.5">
-                      {bulletChar && <span style={{ color: `${textColor}66` }} className="mt-px">{bulletChar}</span>}
-                      <InlineEdit
-                        value={bullet}
-                        onSave={(v) => {
-                          updateResume((r) => ({
-                            ...r,
-                            experience: r.experience.map((e) =>
-                              e.id === exp.id ? { ...e, bullets: e.bullets.map((b, i) => i === bi ? v : b) } : e
-                            ),
-                          }));
-                        }}
-                      />
-                    </li>
-                  ))}
-                </ul>
               </div>
-            ))}
-          </div>
-        )}
 
-        {/* Education */}
-        {resume.education.length > 0 && showEducation && (
-          <div style={{ marginBottom: sectionGap }}>
-            <h2 style={headingStyles}>Education</h2>
-            {resume.education.map((edu) => (
-              <div key={edu.id} className="mb-1.5 flex justify-between items-baseline">
-                <div className="flex items-baseline gap-1">
-                  <InlineEdit
-                    value={edu.degree}
-                    onSave={(v) => updateResume((r) => ({ ...r, education: r.education.map((e) => e.id === edu.id ? { ...e, degree: v } : e) }))}
-                    className="font-semibold"
-                  />
-                  <span className="text-stone-300">·</span>
-                  <InlineEdit
-                    value={edu.school}
-                    onSave={(v) => updateResume((r) => ({ ...r, education: r.education.map((e) => e.id === edu.id ? { ...e, school: v } : e) }))}
-                    style={{ color: `${textColor}99` }}
-                  />
+              {/* Skills */}
+              {resume.skills.length > 0 && showSkills && (
+                <div style={{ marginBottom: sectionGap }}>
+                  <h2 style={headingStyles}>Skills</h2>
+                  <SkillsBlock {...{ resume, skillStyle, basePx, textColor, accentColor }} />
                 </div>
-                <InlineEdit
-                  value={edu.dateRange}
-                  onSave={(v) => updateResume((r) => ({ ...r, education: r.education.map((e) => e.id === edu.id ? { ...e, dateRange: v } : e) }))}
-                  style={{ fontSize: `${basePx * 0.83}px`, color: `${textColor}77` }}
-                />
-              </div>
-            ))}
-          </div>
-        )}
+              )}
 
-        {/* Skills */}
-        {resume.skills.length > 0 && showSkills && (
-          <div className={hl("skills")}>
-            <h2 style={headingStyles}>Skills</h2>
-            {skillStyle === "comma" ? (
-              <p style={{ fontSize: `${basePx * 0.83}px`, color: textColor }}>
-                {resume.skills.join(", ")}
-              </p>
-            ) : skillStyle === "bars" ? (
-              <div className="space-y-1.5">
-                {resume.skills.map((skill, i) => (
-                  <div key={i} className="flex items-center gap-2">
-                    <span style={{ fontSize: `${basePx * 0.83}px`, width: 100 }} className="shrink-0">{skill}</span>
-                    <div className="flex-1 h-1.5 rounded-full" style={{ backgroundColor: `${accentColor}15` }}>
-                      <div className="h-full rounded-full" style={{ backgroundColor: accentColor, width: `${70 + Math.random() * 30}%` }} />
+              {/* Education */}
+              {resume.education.length > 0 && showEducation && (
+                <div style={{ marginBottom: sectionGap }}>
+                  <h2 style={headingStyles}>Education</h2>
+                  {resume.education.map((edu) => (
+                    <div key={edu.id} className="mb-2">
+                      <InlineEdit value={edu.degree}
+                        onSave={(v) => updateResume((r) => ({ ...r, education: r.education.map((e) => e.id === edu.id ? { ...e, degree: v } : e) }))}
+                        className="font-semibold block" />
+                      <InlineEdit value={edu.school}
+                        onSave={(v) => updateResume((r) => ({ ...r, education: r.education.map((e) => e.id === edu.id ? { ...e, school: v } : e) }))}
+                        style={{ color: `${textColor}99`, fontSize: `${basePx * 0.83}px` }} />
+                      <p style={{ fontSize: `${basePx * 0.75}px`, color: `${textColor}66` }}>{edu.dateRange}</p>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Right main */}
+            <div style={{ flex: 1 }}>
+              {resume.summary && showSummary && (
+                <div className={hl("summary")} style={{ marginBottom: sectionGap }}>
+                  <h2 style={headingStyles}>Summary</h2>
+                  <InlineEdit value={resume.summary} onSave={(v) => updateResume((r) => ({ ...r, summary: v }))} multiline className="leading-relaxed" />
+                </div>
+              )}
+              <ExperienceBlock {...{ resume, updateResume, hl, headingStyles, sectionGap, basePx, textColor, bulletChar }} />
+            </div>
+          </div>
+        ) : (
+          <>
+            {/* Summary */}
+            {resume.summary && showSummary && (
+              <div className={hl("summary")} style={{ marginBottom: sectionGap }}>
+                <h2 style={headingStyles}>Summary</h2>
+                <InlineEdit value={resume.summary} onSave={(v) => updateResume((r) => ({ ...r, summary: v }))} multiline className="leading-relaxed" />
               </div>
-            ) : (
-              <div className="flex flex-wrap gap-1.5">
-                {resume.skills.map((skill, i) => (
-                  <span key={i} style={{
-                    backgroundColor: skillStyle === "tags" ? "transparent" : `${accentColor}15`,
-                    color: accentColor,
-                    fontSize: `${basePx * 0.83}px`,
-                    border: skillStyle === "tags" ? `1px solid ${accentColor}33` : "none",
-                    borderRadius: skillStyle === "tags" ? 4 : 9999,
-                  }} className="font-medium px-2.5 py-1">{skill}</span>
+            )}
+
+            <ExperienceBlock {...{ resume, updateResume, hl, headingStyles, sectionGap, basePx, textColor, bulletChar }} />
+
+            {/* Education */}
+            {resume.education.length > 0 && showEducation && (
+              <div style={{ marginBottom: sectionGap }}>
+                <h2 style={headingStyles}>Education</h2>
+                {resume.education.map((edu) => (
+                  <div key={edu.id} className="mb-1.5 flex justify-between items-baseline">
+                    <div className="flex items-baseline gap-1">
+                      <InlineEdit value={edu.degree}
+                        onSave={(v) => updateResume((r) => ({ ...r, education: r.education.map((e) => e.id === edu.id ? { ...e, degree: v } : e) }))}
+                        className="font-semibold" />
+                      <span className="text-stone-300">·</span>
+                      <InlineEdit value={edu.school}
+                        onSave={(v) => updateResume((r) => ({ ...r, education: r.education.map((e) => e.id === edu.id ? { ...e, school: v } : e) }))}
+                        style={{ color: `${textColor}99` }} />
+                    </div>
+                    <InlineEdit value={edu.dateRange}
+                      onSave={(v) => updateResume((r) => ({ ...r, education: r.education.map((e) => e.id === edu.id ? { ...e, dateRange: v } : e) }))}
+                      style={{ fontSize: `${basePx * 0.83}px`, color: `${textColor}77` }} />
+                  </div>
                 ))}
               </div>
             )}
-          </div>
+
+            {/* Skills */}
+            {resume.skills.length > 0 && showSkills && (
+              <div className={hl("skills")}>
+                <h2 style={headingStyles}>Skills</h2>
+                <SkillsBlock {...{ resume, skillStyle, basePx, textColor, accentColor }} />
+              </div>
+            )}
+          </>
         )}
       </div>
       )}
