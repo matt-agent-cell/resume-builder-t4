@@ -33,35 +33,66 @@ export interface CareerVault {
 }
 
 export interface ResumeStyles {
+  // Typography
   fontFamily?: string;
   fontSize?: number; // base size in px
+  nameSize?: number; // multiplier for name
+  headingSize?: number; // multiplier for section headings
+  lineHeight?: number;
+  headingStyle?: "uppercase" | "capitalize" | "normal";
+  // Colors
   headingColor?: string;
   textColor?: string;
   accentColor?: string;
-  lineHeight?: number;
+  dividerColor?: string;
+  // Layout & Structure
+  headerAlign?: "left" | "center" | "right";
+  dateAlign?: "left" | "right";
+  marginsX?: number; // left/right in px
+  marginsY?: number; // top/bottom in px
   sectionSpacing?: number; // in px
-  borderStyle?: "solid" | "double" | "none";
-  headerAlign?: "left" | "center";
-  nameSize?: number; // multiplier for name (e.g. 1.67 = default)
-  margins?: number; // page margins in px
+  columns?: 1 | 2;
+  // Visuals
+  borderStyle?: "solid" | "double" | "dotted" | "none";
+  dividerWeight?: number; // px
   skillStyle?: "pills" | "tags" | "comma" | "bars";
   bulletStyle?: "disc" | "dash" | "arrow" | "none";
+  // Preferences
+  dateFormat?: "MM/YYYY" | "Mon YYYY" | "Month YYYY" | "YYYY";
+  showSummary?: boolean;
+  showSkills?: boolean;
+  showEducation?: boolean;
+  sectionOrder?: string[];
+  // Legacy compat
+  margins?: number;
 }
 
 export const defaultStyles: ResumeStyles = {
   fontFamily: "Inter",
   fontSize: 12,
+  lineHeight: 1.5,
+  nameSize: 1.67,
+  headingSize: 1.0,
+  headingStyle: "uppercase",
   headingColor: "#005149",
   textColor: "#1c1917",
   accentColor: "#005149",
-  lineHeight: 1.5,
-  sectionSpacing: 20,
-  borderStyle: "solid",
+  dividerColor: "#00514933",
   headerAlign: "left",
-  nameSize: 1.67,
-  margins: 32,
+  dateAlign: "right",
+  marginsX: 32,
+  marginsY: 28,
+  sectionSpacing: 20,
+  columns: 1,
+  borderStyle: "solid",
+  dividerWeight: 1,
   skillStyle: "pills",
   bulletStyle: "disc",
+  dateFormat: "Mon YYYY",
+  showSummary: true,
+  showSkills: true,
+  showEducation: true,
+  margins: 32,
 };
 
 export interface ResumeData {

@@ -3,12 +3,12 @@
 import { useState } from "react";
 import { useResume } from "@/context/resume-context";
 import { defaultStyles } from "@/context/resume-context";
-import { Download } from "lucide-react";
+import { Download, Palette } from "lucide-react";
 import InlineEdit from "./inline-edit";
 import ExportModal from "./export-modal";
 import CoverLetterPreview from "./cover-letter-preview";
 
-export default function ResumePreview() {
+export default function ResumePreview({ onDesignClick }: { onDesignClick?: () => void }) {
   const { resume, updateResume, highlightedSections, coverLetter } = useResume();
   const [exportOpen, setExportOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<"resume" | "coverLetter">("resume");
@@ -29,16 +29,32 @@ export default function ResumePreview() {
   const fontFamily = `${s.fontFamily || "Inter"}, sans-serif`;
   const headerAlign = s.headerAlign || "left";
   const nameSize = s.nameSize || 1.67;
-  const margins = s.margins || 32;
+  const headingMult = s.headingSize || 1.0;
+  const headingStyle = s.headingStyle || "uppercase";
+  const marginsX = s.marginsX || s.margins || 32;
+  const marginsY = s.marginsY || 28;
+  const dateAlign = s.dateAlign || "right";
+  const dividerWeight = s.dividerWeight || 1;
   const skillStyle = s.skillStyle || "pills";
   const bulletChar = s.bulletStyle === "dash" ? "–" : s.bulletStyle === "arrow" ? "›" : s.bulletStyle === "none" ? "" : "•";
+  const showSummary = s.showSummary !== false;
+  const showSkills = s.showSkills !== false;
+  const showEducation = s.showEducation !== false;
+
+  const headingStyles: React.CSSProperties = {
+    fontSize: `${basePx * headingMult}px`, fontWeight: 700, color: headingColor,
+    textTransform: headingStyle as React.CSSProperties["textTransform"],
+    letterSpacing: headingStyle === "uppercase" ? "0.05em" : "0",
+    marginBottom: 8, paddingBottom: 4,
+    borderBottom: borderStyle === "none" ? "none" : `${dividerWeight}px ${borderStyle} ${s.dividerColor || headingColor + "33"}`,
+  };
 
   const updateContact = (field: string, value: string) => {
     updateResume((r) => ({ ...r, contact: { ...r.contact, [field]: value } }));
   };
 
   return (
-    <div className="h-full flex flex-col bg-stone-100 relative">
+    <div className="h-full flex flex-col bg-stone-100 relative group/preview">
       {/* Tabs — only show when cover letter exists */}
       {coverLetter && (
         <div className="shrink-0 flex gap-1 px-5 pt-3 pb-0 bg-stone-100">
@@ -62,9 +78,9 @@ export default function ResumePreview() {
       )}
       <div className="flex-1 overflow-y-auto p-5">
       {activeTab === "resume" && (
-      <div className="bg-white max-w-[8.5in] mx-auto shadow-xl rounded-lg py-7" style={{ fontFamily, color: textColor, fontSize: `${basePx}px`, lineHeight, minHeight: "11in", paddingLeft: margins, paddingRight: margins }}>
+      <div className="bg-white max-w-[8.5in] mx-auto shadow-xl rounded-lg" style={{ fontFamily, color: textColor, fontSize: `${basePx}px`, lineHeight, minHeight: "11in", paddingLeft: marginsX, paddingRight: marginsX, paddingTop: marginsY, paddingBottom: marginsY }}>
         {/* Header */}
-        <div style={{ marginBottom: sectionGap, paddingBottom: 16, borderBottom: borderStyle === "none" ? "none" : `2px ${borderStyle} ${headingColor}`, textAlign: headerAlign }}>
+        <div style={{ marginBottom: sectionGap, paddingBottom: 16, borderBottom: borderStyle === "none" ? "none" : `${Math.max(dividerWeight, 2)}px ${borderStyle} ${headingColor}`, textAlign: headerAlign }}>
           <h1 style={{ fontSize: `${basePx * nameSize}px`, fontWeight: 700, color: headingColor, marginBottom: 6 }}>
             <InlineEdit value={resume.contact.name} onSave={(v) => updateContact("name", v)} className="font-bold" style={{ color: headingColor }} />
           </h1>
@@ -92,9 +108,9 @@ export default function ResumePreview() {
         </div>
 
         {/* Summary */}
-        {resume.summary && (
+        {resume.summary && showSummary && (
           <div className={hl("summary")} style={{ marginBottom: sectionGap }}>
-            <h2 style={{ fontSize: `${basePx}px`, fontWeight: 700, color: headingColor, textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 6, paddingBottom: 4, borderBottom: `1px solid ${headingColor}33` }}>Summary</h2>
+            <h2 style={headingStyles}>Summary</h2>
             <InlineEdit
               value={resume.summary}
               onSave={(v) => updateResume((r) => ({ ...r, summary: v }))}
@@ -107,7 +123,7 @@ export default function ResumePreview() {
         {/* Experience */}
         {resume.experience.length > 0 && (
           <div style={{ marginBottom: sectionGap }}>
-            <h2 style={{ fontSize: `${basePx}px`, fontWeight: 700, color: headingColor, textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 8, paddingBottom: 4, borderBottom: `1px solid ${headingColor}33` }}>Experience</h2>
+            <h2 style={headingStyles}>Experience</h2>
             {resume.experience.map((exp) => (
               <div key={exp.id} className={hl(`experience-${exp.id}`)} style={{ marginBottom: 14 }}>
                 <div className="flex justify-between items-baseline">
@@ -155,9 +171,9 @@ export default function ResumePreview() {
         )}
 
         {/* Education */}
-        {resume.education.length > 0 && (
+        {resume.education.length > 0 && showEducation && (
           <div style={{ marginBottom: sectionGap }}>
-            <h2 style={{ fontSize: `${basePx}px`, fontWeight: 700, color: headingColor, textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 8, paddingBottom: 4, borderBottom: `1px solid ${headingColor}33` }}>Education</h2>
+            <h2 style={headingStyles}>Education</h2>
             {resume.education.map((edu) => (
               <div key={edu.id} className="mb-1.5 flex justify-between items-baseline">
                 <div className="flex items-baseline gap-1">
@@ -184,9 +200,9 @@ export default function ResumePreview() {
         )}
 
         {/* Skills */}
-        {resume.skills.length > 0 && (
+        {resume.skills.length > 0 && showSkills && (
           <div className={hl("skills")}>
-            <h2 style={{ fontSize: `${basePx}px`, fontWeight: 700, color: headingColor, textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 8, paddingBottom: 4, borderBottom: `1px solid ${headingColor}33` }}>Skills</h2>
+            <h2 style={headingStyles}>Skills</h2>
             {skillStyle === "comma" ? (
               <p style={{ fontSize: `${basePx * 0.83}px`, color: textColor }}>
                 {resume.skills.join(", ")}
@@ -223,6 +239,17 @@ export default function ResumePreview() {
       {/* Cover Letter */}
       {activeTab === "coverLetter" && coverLetter && (
         <CoverLetterPreview />
+      )}
+
+      {/* Design button — top right on hover */}
+      {onDesignClick && (
+        <button
+          onClick={onDesignClick}
+          className={`absolute ${coverLetter ? "top-14" : "top-3"} right-3 z-10 opacity-0 group-hover/preview:opacity-100 h-8 flex items-center gap-1.5 px-3 rounded-lg bg-white/90 backdrop-blur border border-stone-200 text-stone-600 hover:text-[#005149] hover:border-[#005149]/30 shadow-sm transition-all text-xs font-medium`}
+        >
+          <Palette className="w-3.5 h-3.5" />
+          Design
+        </button>
       )}
 
       {/* Floating export button */}

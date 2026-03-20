@@ -1,114 +1,26 @@
 "use client";
 
+import { useState } from "react";
 import { useResume } from "@/context/resume-context";
 import { defaultStyles } from "@/context/resume-context";
 import type { ResumeStyles } from "@/context/resume-context";
-import { Palette, RotateCcw } from "lucide-react";
+import {
+  LayoutGrid, Type, Paintbrush, Settings2, FileText,
+  X, RotateCcw, ChevronDown, ChevronRight,
+} from "lucide-react";
 
-const FONTS = [
-  { name: "Inter", label: "Inter", style: "Modern / Clean" },
-  { name: "Georgia", label: "Georgia", style: "Classic / Serif" },
-  { name: "Garamond", label: "Garamond", style: "Elegant / Traditional" },
-  { name: "Helvetica", label: "Helvetica", style: "Swiss / Neutral" },
-  { name: "Times New Roman", label: "Times New Roman", style: "Formal / Academic" },
-  { name: "Merriweather", label: "Merriweather", style: "Readable / Warm" },
-  { name: "Lato", label: "Lato", style: "Friendly / Open" },
-  { name: "Roboto", label: "Roboto", style: "Technical / Clean" },
-  { name: "Playfair Display", label: "Playfair Display", style: "Premium / Editorial" },
-  { name: "Source Sans Pro", label: "Source Sans Pro", style: "Professional / Clear" },
-];
+/* ── Shared Controls ── */
 
-const PRESETS: { name: string; desc: string; styles: Partial<ResumeStyles> }[] = [
-  {
-    name: "Teal Classic",
-    desc: "Default Teal brand look",
-    styles: { fontFamily: "Inter", headingColor: "#005149", accentColor: "#005149", textColor: "#1c1917", borderStyle: "solid", headerAlign: "left", skillStyle: "pills", fontSize: 12, lineHeight: 1.5, sectionSpacing: 20, nameSize: 1.67, margins: 32 },
-  },
-  {
-    name: "Modern Minimal",
-    desc: "Clean, lots of whitespace",
-    styles: { fontFamily: "Inter", headingColor: "#18181b", accentColor: "#18181b", textColor: "#3f3f46", borderStyle: "none", headerAlign: "left", skillStyle: "comma", fontSize: 11, lineHeight: 1.6, sectionSpacing: 24, nameSize: 2, margins: 40 },
-  },
-  {
-    name: "Executive",
-    desc: "Traditional, serif, formal",
-    styles: { fontFamily: "Georgia", headingColor: "#1a365d", accentColor: "#1a365d", textColor: "#1a202c", borderStyle: "double", headerAlign: "center", skillStyle: "tags", fontSize: 12, lineHeight: 1.5, sectionSpacing: 20, nameSize: 1.8, margins: 36 },
-  },
-  {
-    name: "Bold & Creative",
-    desc: "Standout design-forward look",
-    styles: { fontFamily: "Playfair Display", headingColor: "#7c3aed", accentColor: "#7c3aed", textColor: "#1c1917", borderStyle: "solid", headerAlign: "center", skillStyle: "pills", fontSize: 12, lineHeight: 1.5, sectionSpacing: 22, nameSize: 2.2, margins: 32 },
-  },
-  {
-    name: "Tech",
-    desc: "Clean, technical, modern",
-    styles: { fontFamily: "Roboto", headingColor: "#0f766e", accentColor: "#0f766e", textColor: "#334155", borderStyle: "solid", headerAlign: "left", skillStyle: "tags", fontSize: 11, lineHeight: 1.5, sectionSpacing: 18, nameSize: 1.67, margins: 32 },
-  },
-  {
-    name: "Elegant",
-    desc: "Refined with generous spacing",
-    styles: { fontFamily: "Garamond", headingColor: "#44403c", accentColor: "#78716c", textColor: "#292524", borderStyle: "solid", headerAlign: "center", skillStyle: "comma", fontSize: 13, lineHeight: 1.6, sectionSpacing: 24, nameSize: 2, margins: 40 },
-  },
-];
-
-const COLOR_SWATCHES = [
-  "#005149", "#1a365d", "#7c3aed", "#0f766e", "#b91c1c",
-  "#18181b", "#44403c", "#1e40af", "#9333ea", "#c2410c",
-];
-
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <div className="mb-6">
-      <h3 className="text-[11px] font-semibold text-stone-400 uppercase tracking-wider mb-3">{title}</h3>
-      {children}
-    </div>
-  );
-}
-
-function ColorPicker({ value, onChange, label }: { value: string; onChange: (v: string) => void; label: string }) {
-  return (
-    <div className="flex items-center justify-between">
-      <span className="text-sm text-stone-600">{label}</span>
-      <div className="flex items-center gap-1.5">
-        {COLOR_SWATCHES.map((c) => (
-          <button
-            key={c}
-            onClick={() => onChange(c)}
-            className={`w-5 h-5 rounded-full border-2 transition-all ${
-              value === c ? "border-stone-800 scale-110" : "border-transparent hover:scale-105"
-            }`}
-            style={{ backgroundColor: c }}
-          />
-        ))}
-        <label className="relative ml-1">
-          <input
-            type="color"
-            value={value}
-            onChange={(e) => onChange(e.target.value)}
-            className="absolute inset-0 w-5 h-5 opacity-0 cursor-pointer"
-          />
-          <div className="w-5 h-5 rounded-full border-2 border-dashed border-stone-300 flex items-center justify-center text-stone-400 text-[10px] cursor-pointer hover:border-stone-400">
-            +
-          </div>
-        </label>
-      </div>
-    </div>
-  );
-}
-
-function Slider({ value, onChange, min, max, step, label, unit }: {
-  value: number; onChange: (v: number) => void; min: number; max: number; step: number; label: string; unit?: string;
+function Slider({ value, onChange, min, max, step, label, unit, showValue = true }: {
+  value: number; onChange: (v: number) => void; min: number; max: number; step: number; label: string; unit?: string; showValue?: boolean;
 }) {
   return (
     <div>
       <div className="flex items-center justify-between mb-1.5">
-        <span className="text-sm text-stone-600">{label}</span>
-        <span className="text-xs text-stone-400 font-mono">{value}{unit}</span>
+        <span className="text-sm text-stone-700">{label}</span>
+        {showValue && <span className="text-xs text-stone-400 font-mono bg-stone-50 px-2 py-0.5 rounded">{value}{unit}</span>}
       </div>
-      <input
-        type="range"
-        min={min} max={max} step={step}
-        value={value}
+      <input type="range" min={min} max={max} step={step} value={value}
         onChange={(e) => onChange(Number(e.target.value))}
         className="w-full h-1.5 bg-stone-200 rounded-full appearance-none cursor-pointer accent-[#005149]"
       />
@@ -116,14 +28,288 @@ function Slider({ value, onChange, min, max, step, label, unit }: {
   );
 }
 
-export default function DesignPanel() {
+function SegmentedControl<T extends string>({ value, options, onChange }: {
+  value: T; options: { value: T; label: string; icon?: React.ReactNode }[]; onChange: (v: T) => void;
+}) {
+  return (
+    <div className="flex gap-1 bg-stone-50 p-1 rounded-lg">
+      {options.map((opt) => (
+        <button key={opt.value} onClick={() => onChange(opt.value)}
+          className={`flex-1 py-2 rounded-md text-xs font-medium transition-all flex items-center justify-center gap-1.5 ${
+            value === opt.value ? "bg-white shadow-sm text-[#005149] border border-stone-200" : "text-stone-500 hover:text-stone-700"
+          }`}
+        >
+          {opt.icon}{opt.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function Toggle({ value, onChange, label }: { value: boolean; onChange: (v: boolean) => void; label: string }) {
+  return (
+    <div className="flex items-center justify-between py-1">
+      <span className="text-sm text-stone-700">{label}</span>
+      <button onClick={() => onChange(!value)}
+        className={`relative w-9 h-5 rounded-full transition-colors ${value ? "bg-[#005149]" : "bg-stone-300"}`}
+      >
+        <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${value ? "translate-x-4" : "translate-x-0.5"}`} />
+      </button>
+    </div>
+  );
+}
+
+function Select({ value, options, onChange, label }: {
+  value: string; options: { value: string; label: string }[]; onChange: (v: string) => void; label: string;
+}) {
+  return (
+    <div>
+      <span className="text-sm text-stone-700 block mb-1.5">{label}</span>
+      <select value={value} onChange={(e) => onChange(e.target.value)}
+        className="w-full px-3 py-2 rounded-lg border border-stone-200 bg-white text-sm text-stone-700 outline-none focus:border-[#005149]/30"
+      >
+        {options.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+      </select>
+    </div>
+  );
+}
+
+function ColorPicker({ value, onChange, label }: { value: string; onChange: (v: string) => void; label: string }) {
+  const swatches = ["#005149", "#1a365d", "#7c3aed", "#0f766e", "#b91c1c", "#18181b", "#44403c", "#1e40af", "#9333ea", "#c2410c"];
+  return (
+    <div>
+      <span className="text-sm text-stone-700 block mb-2">{label}</span>
+      <div className="flex items-center gap-1.5 flex-wrap">
+        {swatches.map((c) => (
+          <button key={c} onClick={() => onChange(c)}
+            className={`w-6 h-6 rounded-full border-2 transition-all ${value === c ? "border-stone-800 scale-110" : "border-transparent hover:scale-105"}`}
+            style={{ backgroundColor: c }}
+          />
+        ))}
+        <label className="relative">
+          <input type="color" value={value} onChange={(e) => onChange(e.target.value)}
+            className="absolute inset-0 w-6 h-6 opacity-0 cursor-pointer" />
+          <div className="w-6 h-6 rounded-full border-2 border-dashed border-stone-300 flex items-center justify-center text-stone-400 text-[10px] cursor-pointer hover:border-stone-400">+</div>
+        </label>
+        <span className="text-xs text-stone-400 font-mono ml-1">{value}</span>
+      </div>
+    </div>
+  );
+}
+
+function Subsection({ title, children, defaultOpen = true }: { title: string; children: React.ReactNode; defaultOpen?: boolean }) {
+  const [open, setOpen] = useState(defaultOpen);
+  return (
+    <div className="border-b border-stone-100 last:border-0">
+      <button onClick={() => setOpen(!open)} className="w-full flex items-center gap-2 py-3 text-sm font-medium text-[#005149] hover:text-[#003d38]">
+        {open ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
+        {title}
+      </button>
+      {open && <div className="pb-4 space-y-4">{children}</div>}
+    </div>
+  );
+}
+
+/* ── Category Sections ── */
+
+const FONTS = [
+  { name: "Inter", style: "Modern / Clean" },
+  { name: "Georgia", style: "Classic / Serif" },
+  { name: "Garamond", style: "Elegant / Traditional" },
+  { name: "Helvetica", style: "Swiss / Neutral" },
+  { name: "Times New Roman", style: "Formal / Academic" },
+  { name: "Merriweather", style: "Readable / Warm" },
+  { name: "Lato", style: "Friendly / Open" },
+  { name: "Roboto", style: "Technical / Clean" },
+  { name: "Playfair Display", style: "Premium / Editorial" },
+  { name: "Source Sans Pro", style: "Professional / Clear" },
+];
+
+function StructureSection({ s, update }: { s: ResumeStyles; update: (p: Partial<ResumeStyles>) => void }) {
+  return (
+    <>
+      <Subsection title="Page Setup">
+        <Select label="Paper Size" value="letter" options={[{ value: "letter", label: "Letter (8.5 × 11 in)" }, { value: "a4", label: "A4 (210 × 297 mm)" }]} onChange={() => {}} />
+        <SegmentedControl value={String(s.columns || 1)} options={[{ value: "1", label: "One" }, { value: "2", label: "Two" }]} onChange={(v) => update({ columns: Number(v) as 1 | 2 })} />
+        <Slider label="Top & Bottom Margins" value={s.marginsY || 28} onChange={(v) => update({ marginsY: v })} min={12} max={56} step={4} unit="px" />
+        <Slider label="Left & Right Margins" value={s.marginsX || 32} onChange={(v) => update({ marginsX: v, margins: v })} min={16} max={64} step={4} unit="px" />
+      </Subsection>
+      <Subsection title="Alignment & Layout">
+        <div>
+          <span className="text-sm text-stone-700 block mb-1.5">Header Alignment</span>
+          <SegmentedControl value={s.headerAlign || "left"} options={[
+            { value: "left", label: "Left" }, { value: "center", label: "Center" }, { value: "right", label: "Right" },
+          ]} onChange={(v) => update({ headerAlign: v })} />
+        </div>
+        <div>
+          <span className="text-sm text-stone-700 block mb-1.5">Date Alignment</span>
+          <SegmentedControl value={s.dateAlign || "right"} options={[
+            { value: "left", label: "Left" }, { value: "right", label: "Right" },
+          ]} onChange={(v) => update({ dateAlign: v })} />
+        </div>
+        <Slider label="Section Spacing" value={s.sectionSpacing || 20} onChange={(v) => update({ sectionSpacing: v })} min={8} max={36} step={2} unit="px" />
+      </Subsection>
+      <Subsection title="Sections" defaultOpen={false}>
+        <Toggle label="Show Summary" value={s.showSummary !== false} onChange={(v) => update({ showSummary: v })} />
+        <Toggle label="Show Skills" value={s.showSkills !== false} onChange={(v) => update({ showSkills: v })} />
+        <Toggle label="Show Education" value={s.showEducation !== false} onChange={(v) => update({ showEducation: v })} />
+      </Subsection>
+    </>
+  );
+}
+
+function TypographySection({ s, update }: { s: ResumeStyles; update: (p: Partial<ResumeStyles>) => void }) {
+  return (
+    <>
+      <Subsection title="Font Family">
+        <div className="grid grid-cols-2 gap-1.5">
+          {FONTS.map((f) => (
+            <button key={f.name} onClick={() => update({ fontFamily: f.name })}
+              className={`text-left px-3 py-2 rounded-lg border transition-all ${
+                s.fontFamily === f.name ? "border-[#005149] bg-[#DBF0EA]" : "border-stone-200 hover:border-stone-300"
+              }`}
+            >
+              <span className="text-sm block" style={{ fontFamily: `${f.name}, serif` }}>{f.name}</span>
+              <span className="text-[10px] text-stone-400">{f.style}</span>
+            </button>
+          ))}
+        </div>
+      </Subsection>
+      <Subsection title="Font Sizes">
+        <Slider label="Body Text" value={s.fontSize || 12} onChange={(v) => update({ fontSize: v })} min={9} max={16} step={0.5} unit="px" />
+        <Slider label="Name Size" value={s.nameSize || 1.67} onChange={(v) => update({ nameSize: v })} min={1.0} max={3.0} step={0.1} unit="×" />
+        <Slider label="Section Headings" value={s.headingSize || 1.0} onChange={(v) => update({ headingSize: v })} min={0.8} max={1.5} step={0.05} unit="×" />
+        <Slider label="Line Height" value={s.lineHeight || 1.5} onChange={(v) => update({ lineHeight: v })} min={1.0} max={2.0} step={0.05} />
+      </Subsection>
+      <Subsection title="Heading Style" defaultOpen={false}>
+        <SegmentedControl value={s.headingStyle || "uppercase"} options={[
+          { value: "uppercase", label: "UPPER" },
+          { value: "capitalize", label: "Title" },
+          { value: "normal", label: "Normal" },
+        ]} onChange={(v) => update({ headingStyle: v })} />
+      </Subsection>
+    </>
+  );
+}
+
+function VisualsSection({ s, update }: { s: ResumeStyles; update: (p: Partial<ResumeStyles>) => void }) {
+  return (
+    <>
+      <Subsection title="Colors">
+        <ColorPicker label="Headings & Name" value={s.headingColor || "#005149"} onChange={(v) => update({ headingColor: v })} />
+        <ColorPicker label="Body Text" value={s.textColor || "#1c1917"} onChange={(v) => update({ textColor: v })} />
+        <ColorPicker label="Accent (Skills, Links)" value={s.accentColor || "#005149"} onChange={(v) => update({ accentColor: v })} />
+      </Subsection>
+      <Subsection title="Dividers">
+        <div>
+          <span className="text-sm text-stone-700 block mb-1.5">Style</span>
+          <SegmentedControl value={s.borderStyle || "solid"} options={[
+            { value: "solid", label: "Solid" }, { value: "double", label: "Double" },
+            { value: "dotted", label: "Dotted" }, { value: "none", label: "None" },
+          ]} onChange={(v) => update({ borderStyle: v })} />
+        </div>
+        <Slider label="Weight" value={s.dividerWeight || 1} onChange={(v) => update({ dividerWeight: v })} min={0.5} max={3} step={0.5} unit="px" />
+      </Subsection>
+      <Subsection title="Skills Display">
+        <SegmentedControl value={s.skillStyle || "pills"} options={[
+          { value: "pills", label: "Pills" }, { value: "tags", label: "Tags" },
+          { value: "comma", label: "Inline" }, { value: "bars", label: "Bars" },
+        ]} onChange={(v) => update({ skillStyle: v })} />
+      </Subsection>
+      <Subsection title="Bullet Style">
+        <SegmentedControl value={s.bulletStyle || "disc"} options={[
+          { value: "disc", label: "•  Bullet" }, { value: "dash", label: "–  Dash" },
+          { value: "arrow", label: "›  Arrow" }, { value: "none", label: "None" },
+        ]} onChange={(v) => update({ bulletStyle: v })} />
+      </Subsection>
+    </>
+  );
+}
+
+function PreferencesSection({ s, update }: { s: ResumeStyles; update: (p: Partial<ResumeStyles>) => void }) {
+  return (
+    <>
+      <Subsection title="Date Format">
+        <Select label="Format" value={s.dateFormat || "Mon YYYY"} options={[
+          { value: "MM/YYYY", label: "Numbers (MM/YYYY)" },
+          { value: "Mon YYYY", label: "Short (Jan 2024)" },
+          { value: "Month YYYY", label: "Full (January 2024)" },
+          { value: "YYYY", label: "Year only (2024)" },
+        ]} onChange={(v) => update({ dateFormat: v as ResumeStyles["dateFormat"] })} />
+      </Subsection>
+    </>
+  );
+}
+
+const PRESETS: { name: string; desc: string; styles: Partial<ResumeStyles> }[] = [
+  {
+    name: "Teal Classic", desc: "Default Teal brand",
+    styles: { fontFamily: "Inter", headingColor: "#005149", accentColor: "#005149", textColor: "#1c1917", borderStyle: "solid", headerAlign: "left", skillStyle: "pills", fontSize: 12, lineHeight: 1.5, sectionSpacing: 20, nameSize: 1.67 },
+  },
+  {
+    name: "Modern Minimal", desc: "Clean & spacious",
+    styles: { fontFamily: "Inter", headingColor: "#18181b", accentColor: "#18181b", textColor: "#3f3f46", borderStyle: "none", headerAlign: "left", skillStyle: "comma", fontSize: 11, lineHeight: 1.6, sectionSpacing: 24, nameSize: 2.0 },
+  },
+  {
+    name: "Executive", desc: "Traditional & formal",
+    styles: { fontFamily: "Georgia", headingColor: "#1a365d", accentColor: "#1a365d", textColor: "#1a202c", borderStyle: "double", headerAlign: "center", skillStyle: "tags", fontSize: 12, lineHeight: 1.5, sectionSpacing: 20, nameSize: 1.8 },
+  },
+  {
+    name: "Bold Creative", desc: "Standout design",
+    styles: { fontFamily: "Playfair Display", headingColor: "#7c3aed", accentColor: "#7c3aed", textColor: "#1c1917", borderStyle: "solid", headerAlign: "center", skillStyle: "pills", fontSize: 12, lineHeight: 1.5, sectionSpacing: 22, nameSize: 2.2 },
+  },
+  {
+    name: "Tech", desc: "Clean & technical",
+    styles: { fontFamily: "Roboto", headingColor: "#0f766e", accentColor: "#0f766e", textColor: "#334155", borderStyle: "solid", headerAlign: "left", skillStyle: "tags", fontSize: 11, lineHeight: 1.5, sectionSpacing: 18, nameSize: 1.67 },
+  },
+  {
+    name: "Elegant", desc: "Refined & spacious",
+    styles: { fontFamily: "Garamond", headingColor: "#44403c", accentColor: "#78716c", textColor: "#292524", borderStyle: "solid", headerAlign: "center", skillStyle: "comma", fontSize: 13, lineHeight: 1.6, sectionSpacing: 24, nameSize: 2.0, headingStyle: "capitalize" },
+  },
+];
+
+function TemplatesSection({ apply }: { apply: (p: Partial<ResumeStyles>) => void }) {
+  return (
+    <div className="space-y-2 py-2">
+      {PRESETS.map((p) => (
+        <button key={p.name} onClick={() => apply(p.styles)}
+          className="w-full text-left p-3 rounded-xl border border-stone-200 hover:border-[#005149]/30 hover:bg-stone-50 transition-all group"
+        >
+          <div className="flex items-center gap-2.5 mb-1">
+            <div className="w-4 h-4 rounded-full border-2 border-white shadow" style={{ backgroundColor: p.styles.headingColor }} />
+            <span className="text-sm font-medium text-stone-700 group-hover:text-stone-900">{p.name}</span>
+            <span className="text-[11px] text-stone-400 ml-auto" style={{ fontFamily: p.styles.fontFamily }}>{p.styles.fontFamily}</span>
+          </div>
+          <p className="text-xs text-stone-400 ml-[26px]">{p.desc}</p>
+        </button>
+      ))}
+    </div>
+  );
+}
+
+/* ── Category Nav ── */
+
+const CATEGORIES = [
+  { id: "structure", label: "Structure", icon: LayoutGrid },
+  { id: "typography", label: "Typography", icon: Type },
+  { id: "visuals", label: "Visuals", icon: Paintbrush },
+  { id: "preferences", label: "Preferences", icon: Settings2 },
+  { id: "templates", label: "Templates", icon: FileText },
+] as const;
+
+type CategoryId = typeof CATEGORIES[number]["id"];
+
+/* ── Main Panel ── */
+
+export default function DesignPanel({ onClose }: { onClose?: () => void }) {
   const { resume, updateResume } = useResume();
+  const [activeCategory, setActiveCategory] = useState<CategoryId>("structure");
 
   if (!resume) return null;
 
   const s = { ...defaultStyles, ...resume.styles };
 
-  const updateStyle = (patch: Partial<ResumeStyles>) => {
+  const update = (patch: Partial<ResumeStyles>) => {
     updateResume((r) => ({ ...r, styles: { ...(r.styles || defaultStyles), ...patch } }));
   };
 
@@ -132,185 +318,55 @@ export default function DesignPanel() {
   };
 
   return (
-    <div className="h-full overflow-y-auto bg-white">
-      <div className="max-w-md mx-auto px-6 py-6">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h1 className="text-lg font-bold text-stone-800 flex items-center gap-2">
-              <Palette className="w-5 h-5 text-[#005149]" />
-              Design
-            </h1>
-            <p className="text-xs text-stone-400 mt-0.5">Customize your resume appearance</p>
-          </div>
-          <button
-            onClick={() => applyPreset(defaultStyles)}
-            className="flex items-center gap-1.5 text-xs text-stone-400 hover:text-stone-600 transition-colors"
-            title="Reset to defaults"
+    <div className="h-full flex flex-col bg-white">
+      {/* Header */}
+      <div className="shrink-0 px-4 py-3 border-b border-stone-200 flex items-center justify-between">
+        <span className="text-sm font-semibold text-stone-700">Design Settings</span>
+        <div className="flex items-center gap-1.5">
+          <button onClick={() => applyPreset(defaultStyles)}
+            className="flex items-center gap-1 text-xs text-stone-400 hover:text-stone-600 transition-colors px-2 py-1 rounded-md hover:bg-stone-50"
           >
-            <RotateCcw className="w-3.5 h-3.5" />
-            Reset
+            <RotateCcw className="w-3 h-3" /> Reset
           </button>
+          {onClose && (
+            <button onClick={onClose}
+              className="w-7 h-7 flex items-center justify-center rounded-lg text-stone-400 hover:text-stone-600 hover:bg-stone-100 transition-colors"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Two-panel layout */}
+      <div className="flex-1 flex overflow-hidden">
+        {/* Left: category nav */}
+        <div className="w-[180px] shrink-0 border-r border-stone-100 py-2 px-2">
+          {CATEGORIES.map((cat) => {
+            const Icon = cat.icon;
+            const active = activeCategory === cat.id;
+            return (
+              <button key={cat.id} onClick={() => setActiveCategory(cat.id)}
+                className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm transition-all mb-0.5 ${
+                  active ? "bg-[#DBF0EA] text-[#005149] font-medium" : "text-stone-600 hover:bg-stone-50"
+                }`}
+              >
+                <Icon className="w-4 h-4 shrink-0" />
+                {cat.label}
+                <ChevronRight className={`w-3 h-3 ml-auto ${active ? "text-[#005149]" : "text-stone-300"}`} />
+              </button>
+            );
+          })}
         </div>
 
-        {/* Presets */}
-        <Section title="Presets">
-          <div className="grid grid-cols-2 gap-2">
-            {PRESETS.map((p) => (
-              <button
-                key={p.name}
-                onClick={() => applyPreset(p.styles)}
-                className="text-left p-3 rounded-xl border border-stone-200 hover:border-[#005149]/30 hover:bg-stone-50 transition-all group"
-              >
-                <div className="flex items-center gap-2 mb-1">
-                  <div className="w-3 h-3 rounded-full" style={{ backgroundColor: p.styles.headingColor }} />
-                  <span className="text-sm font-medium text-stone-700 group-hover:text-stone-900">{p.name}</span>
-                </div>
-                <p className="text-[11px] text-stone-400">{p.desc}</p>
-              </button>
-            ))}
-          </div>
-        </Section>
-
-        {/* Typography */}
-        <Section title="Typography">
-          <div className="space-y-4">
-            {/* Font family */}
-            <div>
-              <span className="text-sm text-stone-600 block mb-1.5">Font</span>
-              <div className="grid grid-cols-2 gap-1.5">
-                {FONTS.map((f) => (
-                  <button
-                    key={f.name}
-                    onClick={() => updateStyle({ fontFamily: f.name })}
-                    className={`text-left px-3 py-2 rounded-lg border transition-all ${
-                      s.fontFamily === f.name
-                        ? "border-[#005149] bg-[#005149]/5"
-                        : "border-stone-200 hover:border-stone-300"
-                    }`}
-                  >
-                    <span className="text-sm block" style={{ fontFamily: `${f.name}, sans-serif` }}>{f.label}</span>
-                    <span className="text-[10px] text-stone-400">{f.style}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <Slider label="Font Size" value={s.fontSize || 12} onChange={(v) => updateStyle({ fontSize: v })} min={9} max={16} step={0.5} unit="px" />
-            <Slider label="Line Height" value={s.lineHeight || 1.5} onChange={(v) => updateStyle({ lineHeight: v })} min={1.1} max={2} step={0.05} />
-            <Slider label="Name Size" value={s.nameSize || 1.67} onChange={(v) => updateStyle({ nameSize: v })} min={1.2} max={3} step={0.1} unit="×" />
-          </div>
-        </Section>
-
-        {/* Colors */}
-        <Section title="Colors">
-          <div className="space-y-4">
-            <ColorPicker label="Headings" value={s.headingColor || "#005149"} onChange={(v) => updateStyle({ headingColor: v })} />
-            <ColorPicker label="Body text" value={s.textColor || "#1c1917"} onChange={(v) => updateStyle({ textColor: v })} />
-            <ColorPicker label="Accent" value={s.accentColor || "#005149"} onChange={(v) => updateStyle({ accentColor: v })} />
-          </div>
-        </Section>
-
-        {/* Layout */}
-        <Section title="Layout">
-          <div className="space-y-4">
-            <Slider label="Section Spacing" value={s.sectionSpacing || 20} onChange={(v) => updateStyle({ sectionSpacing: v })} min={10} max={36} step={2} unit="px" />
-            <Slider label="Page Margins" value={s.margins || 32} onChange={(v) => updateStyle({ margins: v })} min={16} max={56} step={4} unit="px" />
-
-            {/* Header alignment */}
-            <div>
-              <span className="text-sm text-stone-600 block mb-1.5">Header Alignment</span>
-              <div className="flex gap-2">
-                {(["left", "center"] as const).map((align) => (
-                  <button
-                    key={align}
-                    onClick={() => updateStyle({ headerAlign: align })}
-                    className={`flex-1 py-2 rounded-lg border text-sm font-medium transition-all ${
-                      s.headerAlign === align
-                        ? "border-[#005149] bg-[#005149]/5 text-[#005149]"
-                        : "border-stone-200 text-stone-500 hover:border-stone-300"
-                    }`}
-                  >
-                    {align === "left" ? "Left" : "Center"}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Border style */}
-            <div>
-              <span className="text-sm text-stone-600 block mb-1.5">Section Dividers</span>
-              <div className="flex gap-2">
-                {([
-                  { value: "solid", label: "Solid" },
-                  { value: "double", label: "Double" },
-                  { value: "none", label: "None" },
-                ] as const).map((opt) => (
-                  <button
-                    key={opt.value}
-                    onClick={() => updateStyle({ borderStyle: opt.value })}
-                    className={`flex-1 py-2 rounded-lg border text-sm font-medium transition-all ${
-                      s.borderStyle === opt.value
-                        ? "border-[#005149] bg-[#005149]/5 text-[#005149]"
-                        : "border-stone-200 text-stone-500 hover:border-stone-300"
-                    }`}
-                  >
-                    {opt.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-        </Section>
-
-        {/* Skills Style */}
-        <Section title="Skills Display">
-          <div className="grid grid-cols-2 gap-2">
-            {([
-              { value: "pills", label: "Pills", preview: "●●●" },
-              { value: "tags", label: "Tags", preview: "[ ] [ ]" },
-              { value: "comma", label: "Inline", preview: "a, b, c" },
-              { value: "bars", label: "Bars", preview: "━━━" },
-            ] as const).map((opt) => (
-              <button
-                key={opt.value}
-                onClick={() => updateStyle({ skillStyle: opt.value })}
-                className={`py-2.5 px-3 rounded-lg border text-sm transition-all ${
-                  s.skillStyle === opt.value
-                    ? "border-[#005149] bg-[#005149]/5 text-[#005149] font-medium"
-                    : "border-stone-200 text-stone-500 hover:border-stone-300"
-                }`}
-              >
-                <span className="text-[10px] block text-stone-400 mb-0.5">{opt.preview}</span>
-                {opt.label}
-              </button>
-            ))}
-          </div>
-        </Section>
-
-        {/* Bullet Style */}
-        <Section title="Bullet Style">
-          <div className="flex gap-2">
-            {([
-              { value: "disc", label: "•  Bullet" },
-              { value: "dash", label: "–  Dash" },
-              { value: "arrow", label: "›  Arrow" },
-              { value: "none", label: "    None" },
-            ] as const).map((opt) => (
-              <button
-                key={opt.value}
-                onClick={() => updateStyle({ bulletStyle: opt.value })}
-                className={`flex-1 py-2 rounded-lg border text-sm transition-all font-mono ${
-                  s.bulletStyle === opt.value
-                    ? "border-[#005149] bg-[#005149]/5 text-[#005149] font-medium"
-                    : "border-stone-200 text-stone-500 hover:border-stone-300"
-                }`}
-              >
-                {opt.label}
-              </button>
-            ))}
-          </div>
-        </Section>
+        {/* Right: controls */}
+        <div className="flex-1 overflow-y-auto px-5 py-3">
+          {activeCategory === "structure" && <StructureSection s={s} update={update} />}
+          {activeCategory === "typography" && <TypographySection s={s} update={update} />}
+          {activeCategory === "visuals" && <VisualsSection s={s} update={update} />}
+          {activeCategory === "preferences" && <PreferencesSection s={s} update={update} />}
+          {activeCategory === "templates" && <TemplatesSection apply={applyPreset} />}
+        </div>
       </div>
     </div>
   );

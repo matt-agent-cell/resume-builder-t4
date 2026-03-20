@@ -1,7 +1,7 @@
 "use client";
 
 import { useResume } from "@/context/resume-context";
-import { MessageSquare, Plus, Archive, Trash2, FileText, PanelLeftClose, PanelLeft, Palette } from "lucide-react";
+import { MessageSquare, Plus, Archive, Trash2, FileText, PanelLeftClose, PanelLeft } from "lucide-react";
 import { useState } from "react";
 
 export default function Sidebar() {
@@ -81,16 +81,7 @@ export default function Sidebar() {
           <Archive className="w-4 h-4 shrink-0" />
           {expanded && <span>Career Vault</span>}
         </button>
-        <button
-          onClick={() => setSidebarView("design")}
-          className={`w-full flex items-center gap-2.5 rounded-lg transition-colors ${
-            expanded ? "px-3 py-2 text-sm" : "justify-center py-2.5"
-          } ${sidebarView === "design" ? "bg-stone-200/60 text-stone-800 font-medium" : "text-stone-500 hover:bg-stone-100"}`}
-          title="Design"
-        >
-          <Palette className="w-4 h-4 shrink-0" />
-          {expanded && <span>Design</span>}
-        </button>
+        {/* Design mode accessed via resume preview hover button */}
       </div>
 
       {/* Resumes list — only when expanded */}

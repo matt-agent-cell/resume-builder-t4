@@ -138,7 +138,7 @@ function AppContent() {
             <>
               {/* Left: chat or design panel */}
               <div className={hasRightPanel ? "w-1/2" : "w-full"}>
-                {sidebarView === "design" ? <DesignPanel /> : <ChatPanel />}
+                {sidebarView === "design" ? <DesignPanel onClose={() => setSidebarView("chat")} /> : <ChatPanel />}
               </div>
               {/* Right panel */}
               {effectiveRightPanel === "vault" && (
@@ -153,7 +153,7 @@ function AppContent() {
               )}
               {effectiveRightPanel === "resume" && (
                 <div className="w-1/2 border-l border-stone-200">
-                  <ResumePreview />
+                  <ResumePreview onDesignClick={() => setSidebarView(sidebarView === "design" ? "chat" : "design")} />
                 </div>
               )}
             </>
