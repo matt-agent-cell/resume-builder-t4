@@ -6,7 +6,7 @@ import { defaultStyles } from "@/context/resume-context";
 import type { ResumeStyles } from "@/context/resume-context";
 import {
   LayoutGrid, Type, Paintbrush, Settings2, FileText,
-  X, RotateCcw, ChevronDown, ChevronRight,
+  X, RotateCcw, ChevronDown, ChevronRight, Upload, Trash2,
 } from "lucide-react";
 
 /* ── Shared Controls ── */
@@ -125,9 +125,52 @@ const FONTS = [
   { name: "Source Sans Pro", style: "Professional / Clear" },
 ];
 
-function StructureSection({ s, update }: { s: ResumeStyles; update: (p: Partial<ResumeStyles>) => void }) {
+function PhotoUpload({ s, update, setPhoto }: { s: ResumeStyles; update: (p: Partial<ResumeStyles>) => void; setPhoto: (url: string | undefined) => void }) {
+  const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      setPhoto(reader.result as string);
+      update({ showPhoto: true });
+    };
+    reader.readAsDataURL(file);
+  };
+
+  return (
+    <Subsection title="Photo" defaultOpen={true}>
+      <Toggle label="Show Photo" value={s.showPhoto || false} onChange={(v) => update({ showPhoto: v })} />
+      {s.showPhoto && (
+        <div className="space-y-3">
+          <label className="flex items-center gap-2 px-3 py-2.5 rounded-lg border border-dashed border-stone-300 hover:border-[#005149]/40 cursor-pointer transition-colors">
+            <Upload className="w-4 h-4 text-stone-400" />
+            <span className="text-sm text-stone-600">Upload photo</span>
+            <input type="file" accept="image/*" onChange={handleFile} className="hidden" />
+          </label>
+          <Slider label="Size" value={s.photoSize || 72} onChange={(v) => update({ photoSize: v })} min={40} max={120} step={4} unit="px" />
+          <div>
+            <span className="text-sm text-stone-700 block mb-1.5">Shape</span>
+            <SegmentedControl value={s.photoShape || "circle"} options={[
+              { value: "circle", label: "Circle" },
+              { value: "rounded", label: "Rounded" },
+              { value: "square", label: "Square" },
+            ]} onChange={(v) => update({ photoShape: v })} />
+          </div>
+          <button onClick={() => { setPhoto(undefined); update({ showPhoto: false }); }}
+            className="flex items-center gap-1.5 text-xs text-red-500 hover:text-red-600 transition-colors"
+          >
+            <Trash2 className="w-3 h-3" /> Remove photo
+          </button>
+        </div>
+      )}
+    </Subsection>
+  );
+}
+
+function StructureSection({ s, update, setPhoto }: { s: ResumeStyles; update: (p: Partial<ResumeStyles>) => void; setPhoto: (url: string | undefined) => void }) {
   return (
     <>
+      <PhotoUpload s={s} update={update} setPhoto={setPhoto} />
       <Subsection title="Page Setup">
         <Select label="Paper Size" value="letter" options={[{ value: "letter", label: "Letter (8.5 × 11 in)" }, { value: "a4", label: "A4 (210 × 297 mm)" }]} onChange={() => {}} />
         <SegmentedControl value={String(s.columns || 1)} options={[{ value: "1", label: "One" }, { value: "2", label: "Two" }]} onChange={(v) => update({ columns: Number(v) as 1 | 2 })} />
@@ -313,6 +356,10 @@ export default function DesignPanel({ onClose }: { onClose?: () => void }) {
     updateResume((r) => ({ ...r, styles: { ...(r.styles || defaultStyles), ...patch } }));
   };
 
+  const setPhoto = (url: string | undefined) => {
+    updateResume((r) => ({ ...r, contact: { ...r.contact, photo: url } }));
+  };
+
   const applyPreset = (preset: Partial<ResumeStyles>) => {
     updateResume((r) => ({ ...r, styles: { ...defaultStyles, ...preset } }));
   };
@@ -361,7 +408,7 @@ export default function DesignPanel({ onClose }: { onClose?: () => void }) {
 
         {/* Right: controls */}
         <div className="flex-1 overflow-y-auto px-5 py-3">
-          {activeCategory === "structure" && <StructureSection s={s} update={update} />}
+          {activeCategory === "structure" && <StructureSection s={s} update={update} setPhoto={setPhoto} />}
           {activeCategory === "typography" && <TypographySection s={s} update={update} />}
           {activeCategory === "visuals" && <VisualsSection s={s} update={update} />}
           {activeCategory === "preferences" && <PreferencesSection s={s} update={update} />}

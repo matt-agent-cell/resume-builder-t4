@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useResume } from "@/context/resume-context";
-import { Send, ThumbsUp, ThumbsDown, Copy, CheckCircle2 } from "lucide-react";
+import { Send, ThumbsUp, ThumbsDown, Copy, CheckCircle2, ImagePlus } from "lucide-react";
 import { InlineDesignWidget, parseDesignWidgets } from "./inline-design-controls";
 
 function stripJsonBlocks(text: string): { cleaned: string; hadChanges: boolean } {
@@ -76,7 +76,7 @@ function getFollowUpPrompts(lastAssistantMsg: string, hadChanges: boolean): stri
 }
 
 export default function ChatPanel() {
-  const { messages, addMessages, updateLastAssistantMessage, applyResumeChanges, resume, jobDescription, setJobDescription, setMatchAnalysis } = useResume();
+  const { messages, addMessages, updateLastAssistantMessage, applyResumeChanges, resume, updateResume, jobDescription, setJobDescription, setMatchAnalysis } = useResume();
   const [input, setInput] = useState("");
   const [streaming, setStreaming] = useState(false);
   const [toast, setToast] = useState("");
@@ -190,6 +190,23 @@ export default function ChatPanel() {
         onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
       />
       <div className="absolute bottom-2 right-2 flex items-center gap-1">
+        <label className="w-8 h-8 rounded-full text-stone-400 flex items-center justify-center hover:text-stone-600 hover:bg-stone-100 transition-colors cursor-pointer" title="Add photo to resume">
+          <ImagePlus className="w-4 h-4" />
+          <input type="file" accept="image/*" className="hidden" onChange={(e) => {
+            const file = e.target.files?.[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = () => {
+              updateResume((r) => ({
+                ...r,
+                contact: { ...r.contact, photo: reader.result as string },
+                styles: { ...(r.styles || {}), showPhoto: true },
+              }));
+            };
+            reader.readAsDataURL(file);
+            e.target.value = "";
+          }} />
+        </label>
         <button
           onClick={send}
           disabled={!input.trim() || streaming}

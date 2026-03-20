@@ -25,7 +25,7 @@ export interface VaultEducation {
 }
 
 export interface CareerVault {
-  contact: { name: string; email: string; phone: string; location: string; linkedin?: string };
+  contact: { name: string; email: string; phone: string; location: string; linkedin?: string; photo?: string };
   summary: string;
   experience: VaultExperience[];
   education: VaultEducation[];
@@ -63,6 +63,10 @@ export interface ResumeStyles {
   showSkills?: boolean;
   showEducation?: boolean;
   sectionOrder?: string[];
+  // Photo
+  showPhoto?: boolean;
+  photoSize?: number; // px
+  photoShape?: "circle" | "rounded" | "square";
   // Legacy compat
   margins?: number;
 }
@@ -92,11 +96,14 @@ export const defaultStyles: ResumeStyles = {
   showSummary: true,
   showSkills: true,
   showEducation: true,
+  showPhoto: false,
+  photoSize: 72,
+  photoShape: "circle",
   margins: 32,
 };
 
 export interface ResumeData {
-  contact: { name: string; email: string; phone: string; location: string; linkedin?: string };
+  contact: { name: string; email: string; phone: string; location: string; linkedin?: string; photo?: string };
   summary: string;
   experience: VaultExperience[];
   education: VaultEducation[];

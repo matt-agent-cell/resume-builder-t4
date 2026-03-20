@@ -163,7 +163,14 @@ export default function ResumePreview({ onDesignClick }: { onDesignClick?: () =>
       {activeTab === "resume" && (
       <div className="bg-white max-w-[8.5in] mx-auto shadow-xl rounded-lg" style={{ fontFamily, color: textColor, fontSize: `${basePx}px`, lineHeight, minHeight: "11in", paddingLeft: marginsX, paddingRight: marginsX, paddingTop: marginsY, paddingBottom: marginsY }}>
         {/* Header */}
-        <div style={{ marginBottom: sectionGap, paddingBottom: 16, borderBottom: borderStyle === "none" ? "none" : `${Math.max(dividerWeight, 2)}px ${borderStyle} ${headingColor}`, textAlign: headerAlign }}>
+        <div style={{ marginBottom: sectionGap, paddingBottom: 16, borderBottom: borderStyle === "none" ? "none" : `${Math.max(dividerWeight, 2)}px ${borderStyle} ${headingColor}`, textAlign: headerAlign, display: "flex", alignItems: "center", gap: 16, flexDirection: headerAlign === "center" ? "column" : "row" }}>
+          {s.showPhoto && resume.contact.photo && (
+            <img src={resume.contact.photo} alt="" style={{
+              width: s.photoSize || 72, height: s.photoSize || 72, objectFit: "cover", flexShrink: 0,
+              borderRadius: s.photoShape === "circle" ? "50%" : s.photoShape === "rounded" ? 8 : 0,
+            }} />
+          )}
+          <div style={{ textAlign: headerAlign }}>
           <h1 style={{ fontSize: `${basePx * nameSize}px`, fontWeight: 700, color: headingColor, marginBottom: 6 }}>
             <InlineEdit value={resume.contact.name} onSave={(v) => updateContact("name", v)} className="font-bold" style={{ color: headingColor }} />
           </h1>
@@ -187,6 +194,7 @@ export default function ResumePreview({ onDesignClick }: { onDesignClick?: () =>
                 <InlineEdit value={resume.contact.linkedin} onSave={(v) => updateContact("linkedin", v)} className="text-xs text-stone-500" />
               </>
             )}
+          </div>
           </div>
         </div>
 
