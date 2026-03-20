@@ -44,6 +44,29 @@ body { background: #fafaf9; }
 }
 .animate-score { animation: drawCircle 1.5s ease-out forwards; }
 
+/* Page break indicator line */
+.page-break-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 0;
+  border-top: 1px dashed #cbd5e1;
+  pointer-events: none;
+  z-index: 10;
+}
+.page-break-line::after {
+  content: 'page break';
+  position: absolute;
+  right: 8px;
+  top: -8px;
+  font-size: 9px;
+  color: #a8a29e;
+  background: white;
+  padding: 0 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
 /* Resume section highlight pulse */
 @keyframes resumeHighlight {
   0% { background-color: rgba(0, 81, 73, 0.12); box-shadow: 0 0 0 2px rgba(0, 81, 73, 0.2); }

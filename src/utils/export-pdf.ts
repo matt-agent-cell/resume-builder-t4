@@ -89,7 +89,7 @@ export function exportResumePdf(resume: ResumeData, coverLetter?: CoverLetter | 
     <div style="margin-bottom: ${sectionGap}px;">
       <h2 style="${headingCss}">Experience</h2>
       ${resume.experience.map((exp) => `
-        <div style="margin-bottom: 14px;">
+        <div style="margin-bottom: 14px; break-inside: avoid;">
           <div style="display: flex; justify-content: space-between; align-items: baseline;">
             <div>
               <span style="font-weight: 600;">${escapeHtml(exp.title)}</span>

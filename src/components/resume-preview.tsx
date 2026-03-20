@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useResume } from "@/context/resume-context";
 import { defaultStyles } from "@/context/resume-context";
 import { Palette } from "lucide-react";
@@ -19,7 +19,7 @@ function ExperienceBlock({ resume, updateResume, hl, headingStyles, sectionGap, 
     <div style={{ marginBottom: sectionGap }}>
       <h2 style={headingStyles}>Experience</h2>
       {resume.experience.map((exp) => (
-        <div key={exp.id} className={hl(`experience-${exp.id}`)} style={{ marginBottom: 14 }}>
+        <div key={exp.id} className={hl(`experience-${exp.id}`)} style={{ marginBottom: 14, breakInside: "avoid" }}>
           <div className="flex justify-between items-baseline">
             <div className="flex items-baseline gap-1">
               <InlineEdit value={exp.title}
@@ -89,9 +89,29 @@ function SkillsBlock({ resume, skillStyle, basePx, textColor, accentColor }: {
   );
 }
 
+function PageBreaks({ containerRef }: { containerRef: React.RefObject<HTMLDivElement | null> }) {
+  const [breaks, setBreaks] = useState<number[]>([]);
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const observer = new ResizeObserver(() => {
+      const h = el.scrollHeight;
+      const pageH = 11 * 96; // 11in in px at 96dpi
+      const count = Math.floor(h / pageH);
+      const arr: number[] = [];
+      for (let i = 1; i <= count; i++) arr.push(i * pageH);
+      setBreaks(arr);
+    });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [containerRef]);
+  return <>{breaks.map((top) => <div key={top} className="page-break-line" style={{ top }} />)}</>;
+}
+
 export default function ResumePreview({ onDesignClick }: { onDesignClick?: () => void }) {
   const { resume, updateResume, highlightedSections, coverLetter } = useResume();
   const [activeTab, setActiveTab] = useState<"resume" | "coverLetter">("resume");
+  const resumeRef = useRef<HTMLDivElement>(null);
 
   const hl = (key: string) =>
     highlightedSections.has(key) ? "ring-2 ring-[#005149]/20 rounded-md -mx-2 px-2 py-1 transition-all duration-700 resume-highlight" : "";
@@ -159,7 +179,8 @@ export default function ResumePreview({ onDesignClick }: { onDesignClick?: () =>
       )}
       <div className="flex-1 overflow-y-auto p-5">
       {activeTab === "resume" && (
-      <div className="bg-white max-w-[8.5in] mx-auto shadow-xl rounded-lg" style={{ fontFamily, color: textColor, fontSize: `${basePx}px`, lineHeight, minHeight: "11in", paddingLeft: marginsX, paddingRight: marginsX, paddingTop: marginsY, paddingBottom: marginsY }}>
+      <div ref={resumeRef} className="bg-white max-w-[8.5in] mx-auto shadow-xl rounded-lg relative" style={{ fontFamily, color: textColor, fontSize: `${basePx}px`, lineHeight, minHeight: "11in", paddingLeft: marginsX, paddingRight: marginsX, paddingTop: marginsY, paddingBottom: marginsY }}>
+        <PageBreaks containerRef={resumeRef} />
         {/* Header */}
         <div style={{ marginBottom: sectionGap, paddingBottom: 16, borderBottom: borderStyle === "none" ? "none" : `${Math.max(dividerWeight, 2)}px ${borderStyle} ${headingColor}`, textAlign: headerAlign, display: "flex", alignItems: "center", gap: 16, flexDirection: headerAlign === "center" ? "column" : "row" }}>
           {s.showPhoto && resume.contact.photo && (
