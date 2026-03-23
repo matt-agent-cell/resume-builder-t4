@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState, useCallback, type ReactNode } from "react";
+import React, { createContext, useContext, useState, useCallback, useRef, type ReactNode } from "react";
 
 /* ── Data types ── */
 
@@ -111,7 +111,8 @@ export interface ResumeData {
   styles?: ResumeStyles;
 }
 
-export interface ChatMessage { role: "user" | "assistant"; content: string; }
+export interface ChangeDiff { label: string; before: string; after: string; }
+export interface ChatMessage { role: "user" | "assistant"; content: string; diffs?: ChangeDiff[]; }
 export interface MatchItem {
   text: string;
   covered: boolean; // true = conveyed on resume, false = gap
@@ -192,7 +193,7 @@ interface Ctx extends AppState {
   setMatchAnalysis: (ma: MatchAnalysis) => void;
   updateResume: (fn: (r: ResumeData) => ResumeData) => void;
   setResume: (r: ResumeData) => void;
-  applyResumeChanges: (changes: { section: string; id?: string; field?: string; value: unknown }[]) => void;
+  applyResumeChanges: (changes: { section: string; id?: string; field?: string; value: unknown }[]) => ChangeDiff[];
   setShowPreview: (b: boolean) => void;
   setSidebarView: (v: "chat" | "vault" | "design") => void;
   // Vault sync: push new data from resume edits into vault
@@ -216,6 +217,10 @@ export function ResumeProvider({ children }: { children: ReactNode }) {
     showPreview: true,
     sidebarView: "chat",
   });
+
+  // Ref to access current state synchronously (for diff capture)
+  const stateRef = useRef(state);
+  stateRef.current = state;
 
   /* ── Helpers ── */
   const updateActiveSession = useCallback((fn: (s: ResumeSession) => ResumeSession) => {
@@ -397,11 +402,46 @@ export function ResumeProvider({ children }: { children: ReactNode }) {
 
   const [highlightedSections, setHighlightedSections] = useState<Set<string>>(new Set());
 
-  const applyResumeChanges = useCallback((changes: { section: string; id?: string; field?: string; value: unknown }[]) => {
+  const applyResumeChanges = useCallback((changes: { section: string; id?: string; field?: string; value: unknown }[]): ChangeDiff[] => {
     // Track which sections changed for highlight animation
     const sections = new Set(changes.map((c) => c.id ? `${c.section}-${c.id}` : c.section));
     setHighlightedSections(sections);
     setTimeout(() => setHighlightedSections(new Set()), 3000);
+
+    // Capture diffs before applying
+    const diffs: ChangeDiff[] = [];
+    const currentState = stateRef.current;
+    const activeS = currentState.sessions.find((ses) => ses.id === currentState.activeSessionId);
+    if (activeS) {
+      const cur = activeS.resume;
+      for (const c of changes) {
+        if (c.section === "summary" && typeof c.value === "string" && cur.summary !== c.value) {
+          diffs.push({ label: "Professional Summary", before: cur.summary || "(empty)", after: c.value });
+        } else if (c.section === "skills" && Array.isArray(c.value)) {
+          const oldSkills = (cur.skills || []).join(", ");
+          const newSkills = (c.value as string[]).join(", ");
+          if (oldSkills !== newSkills) diffs.push({ label: "Skills", before: oldSkills || "(none)", after: newSkills });
+        } else if (c.section === "experience" && c.id && c.field === "bullets") {
+          const exp = cur.experience.find((e) => e.id === c.id);
+          if (exp) {
+            const oldBullets = (exp.bullets || []).join("\n• ");
+            const newBullets = (c.value as string[]).join("\n• ");
+            if (oldBullets !== newBullets) diffs.push({ label: `${exp.title} — Bullets`, before: oldBullets ? `• ${oldBullets}` : "(empty)", after: `• ${newBullets}` });
+          }
+        } else if (c.section === "experience" && c.id && c.field) {
+          const exp = cur.experience.find((e) => e.id === c.id);
+          if (exp) {
+            const oldVal = String((exp as unknown as Record<string, unknown>)[c.field] || "");
+            const newVal = String(c.value || "");
+            if (oldVal !== newVal) diffs.push({ label: `${exp.title} — ${c.field}`, before: oldVal || "(empty)", after: newVal });
+          }
+        } else if (c.section === "contact" && c.field) {
+          const oldVal = String((cur.contact as unknown as Record<string, unknown>)[c.field] || "");
+          const newVal = String(c.value || "");
+          if (oldVal !== newVal) diffs.push({ label: `Contact — ${c.field}`, before: oldVal || "(empty)", after: newVal });
+        }
+      }
+    }
 
     updateActiveSession((s) => {
       let r = { ...s.resume };
@@ -478,6 +518,8 @@ export function ResumeProvider({ children }: { children: ReactNode }) {
         return { ...s, vault: v };
       });
     }, 100);
+
+    return diffs;
   }, [updateActiveSession]);
 
   const setCoverLetter = useCallback((cl: CoverLetter) => {

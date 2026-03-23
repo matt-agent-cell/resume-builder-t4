@@ -2,7 +2,8 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useResume } from "@/context/resume-context";
-import { Send, ThumbsUp, ThumbsDown, Copy, CheckCircle2, ImagePlus } from "lucide-react";
+import type { ChangeDiff } from "@/context/resume-context";
+import { Send, ThumbsUp, ThumbsDown, Copy, CheckCircle2, ImagePlus, ChevronDown, ChevronUp } from "lucide-react";
 import { InlineDesignWidget, parseDesignWidgets } from "./inline-design-controls";
 
 function stripJsonBlocks(text: string): { cleaned: string; hadChanges: boolean } {
@@ -75,12 +76,40 @@ function getFollowUpPrompts(lastAssistantMsg: string, hadChanges: boolean): stri
   return [];
 }
 
+/* ── Diff Card Component ── */
+function DiffCard({ diffs }: { diffs: ChangeDiff[] }) {
+  const [expanded, setExpanded] = useState(false);
+  const shown = expanded ? diffs : diffs.slice(0, 2);
+  return (
+    <div className="mt-3 space-y-2">
+      {shown.map((d, i) => (
+        <div key={i} className="rounded-xl border border-stone-200 overflow-hidden bg-white">
+          <div className="px-3.5 py-2 bg-stone-50 border-b border-stone-100">
+            <span className="text-xs font-medium text-stone-500 uppercase tracking-wide">{d.label}</span>
+          </div>
+          <div className="px-3.5 py-3 space-y-2">
+            <div className="text-sm text-stone-400 line-through whitespace-pre-wrap leading-relaxed">{d.before}</div>
+            <div className="text-sm text-stone-800 whitespace-pre-wrap leading-relaxed">{d.after}</div>
+          </div>
+        </div>
+      ))}
+      {diffs.length > 2 && (
+        <button onClick={() => setExpanded(!expanded)}
+          className="flex items-center gap-1 text-xs text-[#005149] font-medium hover:underline">
+          {expanded ? <><ChevronUp className="w-3 h-3" /> Show less</> : <><ChevronDown className="w-3 h-3" /> {diffs.length - 2} more change{diffs.length - 2 > 1 ? "s" : ""}</>}
+        </button>
+      )}
+    </div>
+  );
+}
+
 export default function ChatPanel({ onViewResume }: { onViewResume?: () => void } = {}) {
   const { messages, addMessages, updateLastAssistantMessage, applyResumeChanges, resume, updateResume, jobDescription, setJobDescription, setMatchAnalysis } = useResume();
   const [input, setInput] = useState("");
   const [streaming, setStreaming] = useState(false);
   const [toast, setToast] = useState("");
   const [feedback, setFeedback] = useState<Record<number, "up" | "down">>({});
+  const [messageDiffs, setMessageDiffs] = useState<Record<number, ChangeDiff[]>>({});
   const bottomRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -154,17 +183,24 @@ export default function ChatPanel({ onViewResume }: { onViewResume?: () => void 
       }
 
       const jsonBlocks = fullText.matchAll(/```json\s*(\{[\s\S]*?\})\s*```/g);
+      const allDiffs: ChangeDiff[] = [];
       for (const match of jsonBlocks) {
         try {
           const parsed = JSON.parse(match[1]);
           if (parsed.resumeUpdate?.changes) {
-            applyResumeChanges(parsed.resumeUpdate.changes);
+            const d = applyResumeChanges(parsed.resumeUpdate.changes);
+            allDiffs.push(...d);
             showToast("✓ Resume updated");
           }
           if (parsed.matchAnalysis) {
             setMatchAnalysis(parsed.matchAnalysis);
           }
         } catch { /* skip */ }
+      }
+      // Store diffs for the assistant message (last message index)
+      if (allDiffs.length > 0) {
+        const msgIdx = messages.length + 1; // +1 for user msg, assistant is at +1
+        setMessageDiffs((prev) => ({ ...prev, [msgIdx]: allDiffs }));
       }
 
       if (text.length > 200 && /\b(responsibilities|requirements|qualifications|experience|skills|about the role|we are looking)\b/i.test(text)) {
@@ -292,20 +328,40 @@ export default function ChatPanel({ onViewResume }: { onViewResume?: () => void 
                     )}
                   </div>
 
-                  {/* Changes applied badge */}
+                  {/* Changes applied — diff cards or simple badge */}
                   {hadChanges && (
-                    <div className="mt-3 flex items-center gap-2 flex-wrap">
-                      <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#DBF0EA] text-[#005149] text-xs font-medium">
-                        <CheckCircle2 className="w-3.5 h-3.5" />
-                        Changes applied to resume
-                      </span>
-                      {onViewResume && (
-                        <button onClick={onViewResume}
-                          className="md:hidden inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#005149] text-white text-xs font-medium hover:bg-[#003d38] transition-colors">
-                          View resume →
-                        </button>
+                    <>
+                      {messageDiffs[i] && messageDiffs[i].length > 0 ? (
+                        <>
+                          <DiffCard diffs={messageDiffs[i]} />
+                          <div className="mt-2 flex items-center gap-2 flex-wrap">
+                            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#DBF0EA] text-[#005149] text-xs font-medium">
+                              <CheckCircle2 className="w-3.5 h-3.5" />
+                              {messageDiffs[i].length} change{messageDiffs[i].length > 1 ? "s" : ""} applied
+                            </span>
+                            {onViewResume && (
+                              <button onClick={onViewResume}
+                                className="md:hidden inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#005149] text-white text-xs font-medium hover:bg-[#003d38] transition-colors">
+                                View resume →
+                              </button>
+                            )}
+                          </div>
+                        </>
+                      ) : (
+                        <div className="mt-3 flex items-center gap-2 flex-wrap">
+                          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#DBF0EA] text-[#005149] text-xs font-medium">
+                            <CheckCircle2 className="w-3.5 h-3.5" />
+                            Changes applied to resume
+                          </span>
+                          {onViewResume && (
+                            <button onClick={onViewResume}
+                              className="md:hidden inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#005149] text-white text-xs font-medium hover:bg-[#003d38] transition-colors">
+                              View resume →
+                            </button>
+                          )}
+                        </div>
                       )}
-                    </div>
+                    </>
                   )}
 
                   {/* Follow-up suggestion pills */}
