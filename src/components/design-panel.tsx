@@ -378,34 +378,262 @@ export default function DesignPanel({ onClose, compact }: { onClose?: () => void
   };
 
   if (compact) {
-    // Mobile: horizontal category tabs + scrollable controls (Instagram-style bottom tray)
     return (
       <CompactCtx.Provider value={true}>
         <div className="h-full flex flex-col bg-white">
-          {/* Horizontal category tabs */}
-          <div className="shrink-0 flex items-center gap-1.5 px-3 py-2.5 border-b border-stone-100 overflow-x-auto no-scrollbar">
+          {/* Scrollable controls area */}
+          <div className="flex-1 overflow-y-auto">
+            {activeCategory === "structure" && (
+              <div className="px-4 py-3 space-y-4">
+                {/* Photo toggle */}
+                <div className="flex items-center justify-between py-1">
+                  <span className="text-[13px] text-stone-700 font-medium">Photo</span>
+                  <button onClick={() => update({ showPhoto: !(s.showPhoto || false) })}
+                    className={`relative w-11 h-6 rounded-full transition-colors ${s.showPhoto ? "bg-[#005149]" : "bg-stone-300"}`}>
+                    <span className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${s.showPhoto ? "translate-x-5" : "translate-x-0.5"}`} />
+                  </button>
+                </div>
+                {/* Columns */}
+                <div>
+                  <span className="text-[13px] text-stone-700 font-medium block mb-2">Columns</span>
+                  <div className="flex gap-2">
+                    {[1, 2].map(n => (
+                      <button key={n} onClick={() => update({ columns: n as 1 | 2 })}
+                        className={`flex-1 py-3 rounded-xl border-2 text-sm font-medium transition-all ${
+                          (s.columns || 1) === n ? "border-[#005149] bg-[#DBF0EA] text-[#005149]" : "border-stone-200 text-stone-500"
+                        }`}>
+                        {n === 1 ? "Single" : "Two"}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                {/* Header alignment */}
+                <div>
+                  <span className="text-[13px] text-stone-700 font-medium block mb-2">Header</span>
+                  <div className="flex gap-2">
+                    {(["left", "center", "right"] as const).map(a => (
+                      <button key={a} onClick={() => update({ headerAlign: a })}
+                        className={`flex-1 py-2.5 rounded-xl border-2 text-xs font-medium capitalize transition-all ${
+                          (s.headerAlign || "left") === a ? "border-[#005149] bg-[#DBF0EA] text-[#005149]" : "border-stone-200 text-stone-500"
+                        }`}>
+                        {a}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                {/* Margins */}
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-[13px] text-stone-700 font-medium">Margins</span>
+                    <span className="text-[11px] text-stone-400 font-mono">{s.marginsX || 32}px</span>
+                  </div>
+                  <input type="range" min={16} max={64} step={4} value={s.marginsX || 32}
+                    onChange={(e) => update({ marginsX: Number(e.target.value), margins: Number(e.target.value) })}
+                    className="w-full h-2 bg-stone-200 rounded-full appearance-none accent-[#005149]" />
+                </div>
+                {/* Spacing */}
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-[13px] text-stone-700 font-medium">Section Spacing</span>
+                    <span className="text-[11px] text-stone-400 font-mono">{s.sectionSpacing || 20}px</span>
+                  </div>
+                  <input type="range" min={8} max={36} step={2} value={s.sectionSpacing || 20}
+                    onChange={(e) => update({ sectionSpacing: Number(e.target.value) })}
+                    className="w-full h-2 bg-stone-200 rounded-full appearance-none accent-[#005149]" />
+                </div>
+                {/* Section toggles */}
+                <div className="space-y-1">
+                  {([["showSummary", "Summary"], ["showSkills", "Skills"], ["showEducation", "Education"]] as const).map(([key, label]) => {
+                    const isOn = s[key] !== false;
+                    return (
+                      <div key={key} className="flex items-center justify-between py-2">
+                        <span className="text-[13px] text-stone-600">{label}</span>
+                        <button onClick={() => update({ [key]: !isOn } as Partial<ResumeStyles>)}
+                          className={`relative w-11 h-6 rounded-full transition-colors ${isOn ? "bg-[#005149]" : "bg-stone-300"}`}>
+                          <span className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${isOn ? "translate-x-5" : "translate-x-0.5"}`} />
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {activeCategory === "typography" && (
+              <div className="py-3 space-y-4">
+                {/* Font carousel */}
+                <div>
+                  <span className="text-[13px] text-stone-700 font-medium block mb-2 px-4">Font</span>
+                  <div className="flex gap-2 overflow-x-auto no-scrollbar px-4 pb-1">
+                    {FONTS.map((f) => (
+                      <button key={f.name} onClick={() => update({ fontFamily: f.name })}
+                        className={`shrink-0 w-24 py-3 rounded-xl border-2 text-center transition-all ${
+                          s.fontFamily === f.name ? "border-[#005149] bg-[#DBF0EA]" : "border-stone-200"
+                        }`}>
+                        <span className="text-[15px] block leading-tight" style={{ fontFamily: `${f.name}, serif` }}>{f.name.split(" ")[0]}</span>
+                        <span className="text-[10px] text-stone-400 mt-0.5 block">{f.style.split("/")[0].trim()}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                {/* Size sliders */}
+                <div className="px-4 space-y-4">
+                  {([
+                    ["fontSize", "Body Size", 9, 16, 0.5, "px"],
+                    ["nameSize", "Name Size", 1.0, 3.0, 0.1, "×"],
+                    ["lineHeight", "Line Height", 1.0, 2.0, 0.05, ""],
+                  ] as const).map(([key, label, min, max, step, unit]) => (
+                    <div key={key}>
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-[13px] text-stone-700 font-medium">{label}</span>
+                        <span className="text-[11px] text-stone-400 font-mono">{s[key] || min}{unit}</span>
+                      </div>
+                      <input type="range" min={min} max={max} step={step} value={s[key] || min}
+                        onChange={(e) => update({ [key]: Number(e.target.value) } as Partial<ResumeStyles>)}
+                        className="w-full h-2 bg-stone-200 rounded-full appearance-none accent-[#005149]" />
+                    </div>
+                  ))}
+                </div>
+                {/* Heading style */}
+                <div className="px-4">
+                  <span className="text-[13px] text-stone-700 font-medium block mb-2">Heading Style</span>
+                  <div className="flex gap-2">
+                    {([["uppercase", "UPPER"], ["capitalize", "Title"], ["normal", "Normal"]] as const).map(([val, label]) => (
+                      <button key={val} onClick={() => update({ headingStyle: val })}
+                        className={`flex-1 py-2.5 rounded-xl border-2 text-xs font-medium transition-all ${
+                          (s.headingStyle || "uppercase") === val ? "border-[#005149] bg-[#DBF0EA] text-[#005149]" : "border-stone-200 text-stone-500"
+                        }`}>
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeCategory === "visuals" && (
+              <div className="py-3 space-y-5">
+                {/* Color pickers */}
+                {([
+                  ["headingColor", "Heading Color"],
+                  ["accentColor", "Accent Color"],
+                ] as const).map(([key, label]) => (
+                  <div key={key} className="px-4">
+                    <span className="text-[13px] text-stone-700 font-medium block mb-2.5">{label}</span>
+                    <div className="flex gap-3 overflow-x-auto no-scrollbar pb-1">
+                      {["#005149", "#1a365d", "#7c3aed", "#0f766e", "#b91c1c", "#18181b", "#44403c", "#1e40af", "#9333ea", "#c2410c"].map((c) => (
+                        <button key={c} onClick={() => update({ [key]: c } as Partial<ResumeStyles>)}
+                          className={`shrink-0 w-10 h-10 rounded-full border-3 transition-all ${
+                            s[key] === c ? "border-stone-800 scale-110 shadow-md" : "border-transparent"
+                          }`} style={{ backgroundColor: c }} />
+                      ))}
+                    </div>
+                  </div>
+                ))}
+                {/* Divider style */}
+                <div className="px-4">
+                  <span className="text-[13px] text-stone-700 font-medium block mb-2">Dividers</span>
+                  <div className="flex gap-2">
+                    {(["solid", "double", "dotted", "none"] as const).map(v => (
+                      <button key={v} onClick={() => update({ borderStyle: v })}
+                        className={`flex-1 py-2.5 rounded-xl border-2 text-xs font-medium capitalize transition-all ${
+                          (s.borderStyle || "solid") === v ? "border-[#005149] bg-[#DBF0EA] text-[#005149]" : "border-stone-200 text-stone-500"
+                        }`}>
+                        {v}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                {/* Skills style */}
+                <div className="px-4">
+                  <span className="text-[13px] text-stone-700 font-medium block mb-2">Skills Display</span>
+                  <div className="flex gap-2">
+                    {([["pills", "Pills"], ["tags", "Tags"], ["comma", "Inline"], ["bars", "Bars"]] as const).map(([v, l]) => (
+                      <button key={v} onClick={() => update({ skillStyle: v })}
+                        className={`flex-1 py-2.5 rounded-xl border-2 text-xs font-medium transition-all ${
+                          (s.skillStyle || "pills") === v ? "border-[#005149] bg-[#DBF0EA] text-[#005149]" : "border-stone-200 text-stone-500"
+                        }`}>
+                        {l}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                {/* Bullet style */}
+                <div className="px-4">
+                  <span className="text-[13px] text-stone-700 font-medium block mb-2">Bullets</span>
+                  <div className="flex gap-2">
+                    {([["disc", "•"], ["dash", "–"], ["arrow", "›"], ["none", "—"]] as const).map(([v, sym]) => (
+                      <button key={v} onClick={() => update({ bulletStyle: v })}
+                        className={`flex-1 py-3 rounded-xl border-2 text-lg transition-all ${
+                          (s.bulletStyle || "disc") === v ? "border-[#005149] bg-[#DBF0EA] text-[#005149]" : "border-stone-200 text-stone-400"
+                        }`}>
+                        {sym}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeCategory === "preferences" && (
+              <div className="px-4 py-3 space-y-4">
+                <div>
+                  <span className="text-[13px] text-stone-700 font-medium block mb-2">Date Format</span>
+                  <div className="space-y-1.5">
+                    {([["MM/YYYY", "01/2024"], ["Mon YYYY", "Jan 2024"], ["Month YYYY", "January 2024"], ["YYYY", "2024"]] as const).map(([v, preview]) => (
+                      <button key={v} onClick={() => update({ dateFormat: v as ResumeStyles["dateFormat"] })}
+                        className={`w-full flex items-center justify-between px-4 py-3 rounded-xl border-2 transition-all ${
+                          (s.dateFormat || "Mon YYYY") === v ? "border-[#005149] bg-[#DBF0EA]" : "border-stone-200"
+                        }`}>
+                        <span className="text-sm text-stone-700">{preview}</span>
+                        {(s.dateFormat || "Mon YYYY") === v && <div className="w-5 h-5 rounded-full bg-[#005149] flex items-center justify-center"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2.5 6L5 8.5L9.5 3.5" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg></div>}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeCategory === "templates" && (
+              <div className="py-3">
+                <div className="flex gap-3 overflow-x-auto no-scrollbar px-4 pb-2">
+                  {PRESETS.map((p) => (
+                    <button key={p.name} onClick={() => applyPreset(p.styles)}
+                      className="shrink-0 w-36 rounded-xl border-2 border-stone-200 hover:border-[#005149]/40 overflow-hidden transition-all text-left">
+                      {/* Mini preview */}
+                      <div className="h-20 p-3 flex flex-col gap-1" style={{ fontFamily: p.styles.fontFamily }}>
+                        <div className="h-2 w-16 rounded-full" style={{ backgroundColor: p.styles.headingColor }} />
+                        <div className="h-1.5 w-full rounded-full bg-stone-200" />
+                        <div className="h-1.5 w-20 rounded-full bg-stone-200" />
+                        <div className="h-1.5 w-12 rounded-full mt-1" style={{ backgroundColor: p.styles.headingColor, opacity: 0.4 }} />
+                        <div className="h-1.5 w-full rounded-full bg-stone-100" />
+                      </div>
+                      <div className="px-3 py-2 border-t border-stone-100">
+                        <span className="text-xs font-semibold text-stone-700 block">{p.name}</span>
+                        <span className="text-[10px] text-stone-400">{p.desc}</span>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Fixed bottom tab bar */}
+          <div className="shrink-0 border-t border-stone-200 bg-white px-2 py-2 flex items-center justify-around safe-area-bottom">
             {CATEGORIES.map((cat) => {
               const Icon = cat.icon;
               const active = activeCategory === cat.id;
               return (
                 <button key={cat.id} onClick={() => setActiveCategory(cat.id)}
-                  className={`flex items-center gap-1.5 px-3.5 py-2 rounded-full text-[13px] font-medium whitespace-nowrap transition-all ${
-                    active ? "bg-[#DBF0EA] text-[#005149]" : "text-stone-500 hover:bg-stone-50"
-                  }`}
-                >
-                  <Icon className="w-4 h-4" />
-                  {cat.label}
+                  className={`flex flex-col items-center gap-0.5 px-3 py-1 rounded-lg transition-all ${
+                    active ? "text-[#005149]" : "text-stone-400"
+                  }`}>
+                  <Icon className={`w-5 h-5 ${active ? "stroke-[2.5]" : ""}`} />
+                  <span className="text-[10px] font-medium">{cat.label}</span>
                 </button>
               );
             })}
-          </div>
-          {/* Controls */}
-          <div className="flex-1 overflow-y-auto px-4 py-3">
-            {activeCategory === "structure" && <StructureSection s={s} update={update} setPhoto={setPhoto} />}
-            {activeCategory === "typography" && <TypographySection s={s} update={update} />}
-            {activeCategory === "visuals" && <VisualsSection s={s} update={update} />}
-            {activeCategory === "preferences" && <PreferencesSection s={s} update={update} />}
-            {activeCategory === "templates" && <TemplatesSection apply={applyPreset} />}
           </div>
         </div>
       </CompactCtx.Provider>
