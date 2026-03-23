@@ -61,7 +61,37 @@ function AppContent() {
     setSidebarView("chat");
   };
 
-  // Mobile: render the appropriate full-screen view
+  // Mobile: Design mode — split view (resume preview top, design tray bottom)
+  if (isMobile && mobileView === "design") {
+    return (
+      <div className="h-screen flex flex-col bg-stone-100">
+        {/* Compact header */}
+        <header className="h-11 shrink-0 border-b border-stone-200 flex items-center px-3 bg-white gap-2">
+          <button onClick={goBack} className="w-8 h-8 flex items-center justify-center rounded-lg text-stone-500 hover:bg-stone-100">
+            <ChevronLeft className="w-5 h-5" />
+          </button>
+          <span className="text-sm font-medium text-stone-700 flex-1 truncate">Design</span>
+          <button onClick={() => setShowExport(true)} className="w-8 h-8 flex items-center justify-center rounded-lg text-stone-400 hover:text-stone-600 hover:bg-stone-100">
+            <Download className="w-4 h-4" />
+          </button>
+        </header>
+        {/* Resume preview — top portion, scaled to fit */}
+        <div className="flex-1 min-h-0 overflow-auto bg-stone-100 flex justify-center p-3">
+          <div className="origin-top" style={{ transform: "scale(0.55)", transformOrigin: "top center", width: "8.5in", minHeight: "11in", flexShrink: 0 }}>
+            <ResumePreview onDesignClick={() => {}} />
+          </div>
+        </div>
+        {/* Design tray — bottom portion */}
+        <div className="h-[45vh] shrink-0 border-t border-stone-200 bg-white rounded-t-2xl shadow-[0_-4px_20px_rgba(0,0,0,0.08)]">
+          <div className="w-10 h-1 bg-stone-300 rounded-full mx-auto mt-2 mb-1" />
+          <DesignPanel compact onClose={goBack} />
+        </div>
+        <ExportModal isOpen={showExport} onClose={() => setShowExport(false)} />
+      </div>
+    );
+  }
+
+  // Mobile: other full-screen views
   if (isMobile && mobileView !== "chat") {
     return (
       <div className="h-screen flex flex-col bg-white">
@@ -75,12 +105,16 @@ function AppContent() {
             {mobileView === "vault" && "Career Vault"}
             {mobileView === "match" && "Match Analysis"}
             {mobileView === "compare" && "Compare"}
-            {mobileView === "design" && "Design Settings"}
           </span>
           {mobileView === "resume" && (
-            <button onClick={() => setShowExport(true)} className="w-8 h-8 flex items-center justify-center rounded-lg text-stone-400 hover:text-stone-600 hover:bg-stone-100">
-              <Download className="w-4 h-4" />
-            </button>
+            <>
+              <button onClick={() => setMobileView("design")} className="w-8 h-8 flex items-center justify-center rounded-lg text-stone-400 hover:text-stone-600 hover:bg-stone-100">
+                <Settings className="w-4 h-4" />
+              </button>
+              <button onClick={() => setShowExport(true)} className="w-8 h-8 flex items-center justify-center rounded-lg text-stone-400 hover:text-stone-600 hover:bg-stone-100">
+                <Download className="w-4 h-4" />
+              </button>
+            </>
           )}
         </header>
         <div className="flex-1 overflow-hidden">
@@ -88,7 +122,6 @@ function AppContent() {
           {mobileView === "vault" && <VaultEditor />}
           {mobileView === "match" && <MatchPanel onClose={goBack} />}
           {mobileView === "compare" && <CompareView onClose={goBack} />}
-          {mobileView === "design" && <DesignPanel onClose={goBack} />}
         </div>
         <ExportModal isOpen={showExport} onClose={() => setShowExport(false)} />
       </div>

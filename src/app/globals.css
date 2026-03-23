@@ -15,6 +15,10 @@ body { background: #fafaf9; }
 }
 .highlight-update { animation: highlightFade 2s ease-out forwards; border-radius: 4px; }
 
+/* Hide scrollbar but keep scrolling */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
 /* Mobile sidebar slide-in */
 @keyframes slideInLeft {
   from { transform: translateX(-100%); }

@@ -344,7 +344,7 @@ type CategoryId = typeof CATEGORIES[number]["id"];
 
 /* ── Main Panel ── */
 
-export default function DesignPanel({ onClose }: { onClose?: () => void }) {
+export default function DesignPanel({ onClose, compact }: { onClose?: () => void; compact?: boolean }) {
   const { resume, updateResume } = useResume();
   const [activeCategory, setActiveCategory] = useState<CategoryId>("structure");
 
@@ -363,6 +363,44 @@ export default function DesignPanel({ onClose }: { onClose?: () => void }) {
   const applyPreset = (preset: Partial<ResumeStyles>) => {
     updateResume((r) => ({ ...r, styles: { ...defaultStyles, ...preset } }));
   };
+
+  if (compact) {
+    // Mobile: horizontal category tabs + scrollable controls (Instagram-style bottom tray)
+    return (
+      <div className="h-full flex flex-col bg-white">
+        {/* Horizontal category tabs */}
+        <div className="shrink-0 flex items-center gap-1 px-3 py-2 border-b border-stone-100 overflow-x-auto no-scrollbar">
+          {CATEGORIES.map((cat) => {
+            const Icon = cat.icon;
+            const active = activeCategory === cat.id;
+            return (
+              <button key={cat.id} onClick={() => setActiveCategory(cat.id)}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all ${
+                  active ? "bg-[#DBF0EA] text-[#005149]" : "text-stone-500 hover:bg-stone-50"
+                }`}
+              >
+                <Icon className="w-3.5 h-3.5" />
+                {cat.label}
+              </button>
+            );
+          })}
+          <button onClick={() => applyPreset(defaultStyles)}
+            className="flex items-center gap-1 px-3 py-1.5 rounded-full text-xs text-stone-400 hover:text-stone-600 whitespace-nowrap ml-auto"
+          >
+            <RotateCcw className="w-3 h-3" /> Reset
+          </button>
+        </div>
+        {/* Controls */}
+        <div className="flex-1 overflow-y-auto px-4 py-3">
+          {activeCategory === "structure" && <StructureSection s={s} update={update} setPhoto={setPhoto} />}
+          {activeCategory === "typography" && <TypographySection s={s} update={update} />}
+          {activeCategory === "visuals" && <VisualsSection s={s} update={update} />}
+          {activeCategory === "preferences" && <PreferencesSection s={s} update={update} />}
+          {activeCategory === "templates" && <TemplatesSection apply={applyPreset} />}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="h-full flex flex-col bg-white">
