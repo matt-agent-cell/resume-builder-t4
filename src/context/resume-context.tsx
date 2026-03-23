@@ -415,31 +415,52 @@ export function ResumeProvider({ children }: { children: ReactNode }) {
     if (activeS) {
       const cur = activeS.resume;
       for (const c of changes) {
-        if (c.section === "summary" && typeof c.value === "string" && cur.summary !== c.value) {
-          diffs.push({ label: "Professional Summary", before: cur.summary || "(empty)", after: c.value });
-        } else if (c.section === "skills" && Array.isArray(c.value)) {
-          const oldSkills = (cur.skills || []).join(", ");
-          const newSkills = (c.value as string[]).join(", ");
-          if (oldSkills !== newSkills) diffs.push({ label: "Skills", before: oldSkills || "(none)", after: newSkills });
-        } else if (c.section === "experience" && c.id && c.field === "bullets") {
-          const exp = cur.experience.find((e) => e.id === c.id);
-          if (exp) {
-            const oldBullets = (exp.bullets || []).join("\n• ");
-            const newBullets = (c.value as string[]).join("\n• ");
-            if (oldBullets !== newBullets) diffs.push({ label: `${exp.title} — Bullets`, before: oldBullets ? `• ${oldBullets}` : "(empty)", after: `• ${newBullets}` });
-          }
-        } else if (c.section === "experience" && c.id && c.field) {
-          const exp = cur.experience.find((e) => e.id === c.id);
-          if (exp) {
-            const oldVal = String((exp as unknown as Record<string, unknown>)[c.field] || "");
+        try {
+          if (c.section === "summary" && typeof c.value === "string") {
+            if (cur.summary !== c.value) diffs.push({ label: "Professional Summary", before: cur.summary || "(empty)", after: c.value });
+          } else if (c.section === "skills" && Array.isArray(c.value)) {
+            const oldSkills = (cur.skills || []).join(", ");
+            const newSkills = (c.value as string[]).join(", ");
+            if (oldSkills !== newSkills) diffs.push({ label: "Skills", before: oldSkills || "(none)", after: newSkills });
+          } else if (c.section === "experience" && c.id) {
+            const exp = cur.experience.find((e) => e.id === c.id);
+            if (c.field === "bullets" && Array.isArray(c.value)) {
+              const oldBullets = exp ? (exp.bullets || []).map(b => `• ${b}`).join("\n") : "(new)";
+              const newBullets = (c.value as string[]).map(b => `• ${b}`).join("\n");
+              if (oldBullets !== newBullets) diffs.push({ label: `${exp?.title || "Experience"} — Bullets`, before: oldBullets, after: newBullets });
+            } else if (c.field) {
+              const oldVal = exp ? String((exp as unknown as Record<string, unknown>)[c.field] || "") : "";
+              const newVal = String(c.value || "");
+              if (oldVal !== newVal) diffs.push({ label: `${exp?.title || "Experience"} — ${c.field.charAt(0).toUpperCase() + c.field.slice(1)}`, before: oldVal || "(empty)", after: newVal });
+            } else if (typeof c.value === "object" && c.value !== null) {
+              // Whole experience object update
+              const v = c.value as Record<string, unknown>;
+              const title = String(v.title || exp?.title || "Experience");
+              if (v.bullets && Array.isArray(v.bullets)) {
+                const oldBullets = exp ? (exp.bullets || []).map(b => `• ${b}`).join("\n") : "(new)";
+                const newBullets = (v.bullets as string[]).map(b => `• ${b}`).join("\n");
+                if (oldBullets !== newBullets) diffs.push({ label: `${title} — Bullets`, before: oldBullets, after: newBullets });
+              }
+              // Check title, company, description changes in the object
+              for (const key of ["title", "company", "description", "location"] as const) {
+                if (v[key] && exp && String(v[key]) !== String((exp as unknown as Record<string, unknown>)[key] || "")) {
+                  diffs.push({ label: `${title} — ${key.charAt(0).toUpperCase() + key.slice(1)}`, before: String((exp as unknown as Record<string, unknown>)[key] || "(empty)"), after: String(v[key]) });
+                }
+              }
+            }
+          } else if (c.section === "education" && c.id) {
+            const edu = cur.education.find((e) => e.id === c.id);
+            if (c.field) {
+              const oldVal = edu ? String((edu as unknown as Record<string, unknown>)[c.field] || "") : "";
+              const newVal = String(c.value || "");
+              if (oldVal !== newVal) diffs.push({ label: `${edu?.school || "Education"} — ${c.field.charAt(0).toUpperCase() + c.field.slice(1)}`, before: oldVal || "(empty)", after: newVal });
+            }
+          } else if (c.section === "contact" && c.field) {
+            const oldVal = String((cur.contact as unknown as Record<string, unknown>)[c.field] || "");
             const newVal = String(c.value || "");
-            if (oldVal !== newVal) diffs.push({ label: `${exp.title} — ${c.field}`, before: oldVal || "(empty)", after: newVal });
+            if (oldVal !== newVal) diffs.push({ label: `Contact — ${c.field.charAt(0).toUpperCase() + c.field.slice(1)}`, before: oldVal || "(empty)", after: newVal });
           }
-        } else if (c.section === "contact" && c.field) {
-          const oldVal = String((cur.contact as unknown as Record<string, unknown>)[c.field] || "");
-          const newVal = String(c.value || "");
-          if (oldVal !== newVal) diffs.push({ label: `Contact — ${c.field}`, before: oldVal || "(empty)", after: newVal });
-        }
+        } catch { /* skip diff capture errors — don't block the actual update */ }
       }
     }
 
