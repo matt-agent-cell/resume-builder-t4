@@ -9,20 +9,27 @@ import {
   X, RotateCcw, ChevronDown, ChevronRight, Upload, Trash2,
 } from "lucide-react";
 
+/* ── Mobile-aware context ── */
+import { createContext, useContext } from "react";
+const CompactCtx = createContext(false);
+const useCompact = () => useContext(CompactCtx);
+
 /* ── Shared Controls ── */
 
 function Slider({ value, onChange, min, max, step, label, unit, showValue = true }: {
   value: number; onChange: (v: number) => void; min: number; max: number; step: number; label: string; unit?: string; showValue?: boolean;
 }) {
+  const compact = useCompact();
   return (
     <div>
       <div className="flex items-center justify-between mb-1.5">
-        <span className="text-sm text-stone-700">{label}</span>
-        {showValue && <span className="text-xs text-stone-400 font-mono bg-stone-50 px-2 py-0.5 rounded">{value}{unit}</span>}
+        <span className={`${compact ? "text-[13px]" : "text-sm"} text-stone-700`}>{label}</span>
+        {showValue && <span className={`${compact ? "text-[11px] px-2.5 py-1" : "text-xs px-2 py-0.5"} text-stone-400 font-mono bg-stone-50 rounded`}>{value}{unit}</span>}
       </div>
       <input type="range" min={min} max={max} step={step} value={value}
         onChange={(e) => onChange(Number(e.target.value))}
-        className="w-full h-1.5 bg-stone-200 rounded-full appearance-none cursor-pointer accent-[#005149]"
+        className={`w-full ${compact ? "h-2" : "h-1.5"} bg-stone-200 rounded-full appearance-none cursor-pointer accent-[#005149]`}
+        style={compact ? { WebkitAppearance: "none", height: 8 } : undefined}
       />
     </div>
   );
@@ -31,11 +38,12 @@ function Slider({ value, onChange, min, max, step, label, unit, showValue = true
 function SegmentedControl<T extends string>({ value, options, onChange }: {
   value: T; options: { value: T; label: string; icon?: React.ReactNode }[]; onChange: (v: T) => void;
 }) {
+  const compact = useCompact();
   return (
-    <div className="flex gap-1 bg-stone-50 p-1 rounded-lg">
+    <div className={`flex gap-1 bg-stone-50 ${compact ? "p-1.5" : "p-1"} rounded-lg`}>
       {options.map((opt) => (
         <button key={opt.value} onClick={() => onChange(opt.value)}
-          className={`flex-1 py-2 rounded-md text-xs font-medium transition-all flex items-center justify-center gap-1.5 ${
+          className={`flex-1 ${compact ? "py-2.5" : "py-2"} rounded-md ${compact ? "text-[13px]" : "text-xs"} font-medium transition-all flex items-center justify-center gap-1.5 ${
             value === opt.value ? "bg-white shadow-sm text-[#005149] border border-stone-200" : "text-stone-500 hover:text-stone-700"
           }`}
         >
@@ -47,13 +55,14 @@ function SegmentedControl<T extends string>({ value, options, onChange }: {
 }
 
 function Toggle({ value, onChange, label }: { value: boolean; onChange: (v: boolean) => void; label: string }) {
+  const compact = useCompact();
   return (
-    <div className="flex items-center justify-between py-1">
-      <span className="text-sm text-stone-700">{label}</span>
+    <div className={`flex items-center justify-between ${compact ? "py-2" : "py-1"}`}>
+      <span className={`${compact ? "text-[13px]" : "text-sm"} text-stone-700`}>{label}</span>
       <button onClick={() => onChange(!value)}
-        className={`relative w-9 h-5 rounded-full transition-colors ${value ? "bg-[#005149]" : "bg-stone-300"}`}
+        className={`relative ${compact ? "w-11 h-6" : "w-9 h-5"} rounded-full transition-colors ${value ? "bg-[#005149]" : "bg-stone-300"}`}
       >
-        <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${value ? "translate-x-4" : "translate-x-0.5"}`} />
+        <span className={`absolute ${compact ? "top-0.5 w-5 h-5" : "top-0.5 w-4 h-4"} rounded-full bg-white shadow transition-transform ${value ? (compact ? "translate-x-5" : "translate-x-4") : "translate-x-0.5"}`} />
       </button>
     </div>
   );
@@ -62,11 +71,12 @@ function Toggle({ value, onChange, label }: { value: boolean; onChange: (v: bool
 function Select({ value, options, onChange, label }: {
   value: string; options: { value: string; label: string }[]; onChange: (v: string) => void; label: string;
 }) {
+  const compact = useCompact();
   return (
     <div>
-      <span className="text-sm text-stone-700 block mb-1.5">{label}</span>
+      <span className={`${compact ? "text-[13px]" : "text-sm"} text-stone-700 block mb-1.5`}>{label}</span>
       <select value={value} onChange={(e) => onChange(e.target.value)}
-        className="w-full px-3 py-2 rounded-lg border border-stone-200 bg-white text-sm text-stone-700 outline-none focus:border-[#005149]/30"
+        className={`w-full ${compact ? "px-3 py-3 text-[15px]" : "px-3 py-2 text-sm"} rounded-lg border border-stone-200 bg-white text-stone-700 outline-none focus:border-[#005149]/30`}
       >
         {options.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
       </select>
@@ -75,37 +85,39 @@ function Select({ value, options, onChange, label }: {
 }
 
 function ColorPicker({ value, onChange, label }: { value: string; onChange: (v: string) => void; label: string }) {
+  const compact = useCompact();
   const swatches = ["#005149", "#1a365d", "#7c3aed", "#0f766e", "#b91c1c", "#18181b", "#44403c", "#1e40af", "#9333ea", "#c2410c"];
+  const size = compact ? "w-9 h-9" : "w-6 h-6";
   return (
     <div>
-      <span className="text-sm text-stone-700 block mb-2">{label}</span>
-      <div className="flex items-center gap-1.5 flex-wrap">
+      <span className={`${compact ? "text-[13px]" : "text-sm"} text-stone-700 block mb-2`}>{label}</span>
+      <div className={`flex items-center ${compact ? "gap-2.5" : "gap-1.5"} flex-wrap`}>
         {swatches.map((c) => (
           <button key={c} onClick={() => onChange(c)}
-            className={`w-6 h-6 rounded-full border-2 transition-all ${value === c ? "border-stone-800 scale-110" : "border-transparent hover:scale-105"}`}
+            className={`${size} rounded-full border-2 transition-all ${value === c ? "border-stone-800 scale-110" : "border-transparent hover:scale-105"}`}
             style={{ backgroundColor: c }}
           />
         ))}
         <label className="relative">
           <input type="color" value={value} onChange={(e) => onChange(e.target.value)}
-            className="absolute inset-0 w-6 h-6 opacity-0 cursor-pointer" />
-          <div className="w-6 h-6 rounded-full border-2 border-dashed border-stone-300 flex items-center justify-center text-stone-400 text-[10px] cursor-pointer hover:border-stone-400">+</div>
+            className={`absolute inset-0 ${size} opacity-0 cursor-pointer`} />
+          <div className={`${size} rounded-full border-2 border-dashed border-stone-300 flex items-center justify-center text-stone-400 text-[10px] cursor-pointer hover:border-stone-400`}>+</div>
         </label>
-        <span className="text-xs text-stone-400 font-mono ml-1">{value}</span>
       </div>
     </div>
   );
 }
 
 function Subsection({ title, children, defaultOpen = true }: { title: string; children: React.ReactNode; defaultOpen?: boolean }) {
-  const [open, setOpen] = useState(defaultOpen);
+  const compact = useCompact();
+  const [open, setOpen] = useState(compact ? false : defaultOpen);
   return (
     <div className="border-b border-stone-100 last:border-0">
-      <button onClick={() => setOpen(!open)} className="w-full flex items-center gap-2 py-3 text-sm font-medium text-[#005149] hover:text-[#003d38]">
+      <button onClick={() => setOpen(!open)} className={`w-full flex items-center gap-2 ${compact ? "py-3.5" : "py-3"} text-sm font-medium text-[#005149] hover:text-[#003d38]`}>
         {open ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
         {title}
       </button>
-      {open && <div className="pb-4 space-y-4">{children}</div>}
+      {open && <div className={`${compact ? "pb-5 space-y-5" : "pb-4 space-y-4"}`}>{children}</div>}
     </div>
   );
 }
@@ -202,18 +214,19 @@ function StructureSection({ s, update, setPhoto }: { s: ResumeStyles; update: (p
 }
 
 function TypographySection({ s, update }: { s: ResumeStyles; update: (p: Partial<ResumeStyles>) => void }) {
+  const compact = useCompact();
   return (
     <>
       <Subsection title="Font Family">
-        <div className="grid grid-cols-2 gap-1.5">
+        <div className={`grid ${compact ? "grid-cols-1 gap-1" : "grid-cols-2 gap-1.5"}`}>
           {FONTS.map((f) => (
             <button key={f.name} onClick={() => update({ fontFamily: f.name })}
-              className={`text-left px-3 py-2 rounded-lg border transition-all ${
+              className={`text-left ${compact ? "px-4 py-3" : "px-3 py-2"} rounded-lg border transition-all ${
                 s.fontFamily === f.name ? "border-[#005149] bg-[#DBF0EA]" : "border-stone-200 hover:border-stone-300"
               }`}
             >
-              <span className="text-sm block" style={{ fontFamily: `${f.name}, serif` }}>{f.name}</span>
-              <span className="text-[10px] text-stone-400">{f.style}</span>
+              <span className={`${compact ? "text-[15px]" : "text-sm"} block`} style={{ fontFamily: `${f.name}, serif` }}>{f.name}</span>
+              <span className={`${compact ? "text-[11px]" : "text-[10px]"} text-stone-400`}>{f.style}</span>
             </button>
           ))}
         </div>
@@ -367,38 +380,35 @@ export default function DesignPanel({ onClose, compact }: { onClose?: () => void
   if (compact) {
     // Mobile: horizontal category tabs + scrollable controls (Instagram-style bottom tray)
     return (
-      <div className="h-full flex flex-col bg-white">
-        {/* Horizontal category tabs */}
-        <div className="shrink-0 flex items-center gap-1 px-3 py-2 border-b border-stone-100 overflow-x-auto no-scrollbar">
-          {CATEGORIES.map((cat) => {
-            const Icon = cat.icon;
-            const active = activeCategory === cat.id;
-            return (
-              <button key={cat.id} onClick={() => setActiveCategory(cat.id)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all ${
-                  active ? "bg-[#DBF0EA] text-[#005149]" : "text-stone-500 hover:bg-stone-50"
-                }`}
-              >
-                <Icon className="w-3.5 h-3.5" />
-                {cat.label}
-              </button>
-            );
-          })}
-          <button onClick={() => applyPreset(defaultStyles)}
-            className="flex items-center gap-1 px-3 py-1.5 rounded-full text-xs text-stone-400 hover:text-stone-600 whitespace-nowrap ml-auto"
-          >
-            <RotateCcw className="w-3 h-3" /> Reset
-          </button>
+      <CompactCtx.Provider value={true}>
+        <div className="h-full flex flex-col bg-white">
+          {/* Horizontal category tabs */}
+          <div className="shrink-0 flex items-center gap-1.5 px-3 py-2.5 border-b border-stone-100 overflow-x-auto no-scrollbar">
+            {CATEGORIES.map((cat) => {
+              const Icon = cat.icon;
+              const active = activeCategory === cat.id;
+              return (
+                <button key={cat.id} onClick={() => setActiveCategory(cat.id)}
+                  className={`flex items-center gap-1.5 px-3.5 py-2 rounded-full text-[13px] font-medium whitespace-nowrap transition-all ${
+                    active ? "bg-[#DBF0EA] text-[#005149]" : "text-stone-500 hover:bg-stone-50"
+                  }`}
+                >
+                  <Icon className="w-4 h-4" />
+                  {cat.label}
+                </button>
+              );
+            })}
+          </div>
+          {/* Controls */}
+          <div className="flex-1 overflow-y-auto px-4 py-3">
+            {activeCategory === "structure" && <StructureSection s={s} update={update} setPhoto={setPhoto} />}
+            {activeCategory === "typography" && <TypographySection s={s} update={update} />}
+            {activeCategory === "visuals" && <VisualsSection s={s} update={update} />}
+            {activeCategory === "preferences" && <PreferencesSection s={s} update={update} />}
+            {activeCategory === "templates" && <TemplatesSection apply={applyPreset} />}
+          </div>
         </div>
-        {/* Controls */}
-        <div className="flex-1 overflow-y-auto px-4 py-3">
-          {activeCategory === "structure" && <StructureSection s={s} update={update} setPhoto={setPhoto} />}
-          {activeCategory === "typography" && <TypographySection s={s} update={update} />}
-          {activeCategory === "visuals" && <VisualsSection s={s} update={update} />}
-          {activeCategory === "preferences" && <PreferencesSection s={s} update={update} />}
-          {activeCategory === "templates" && <TemplatesSection apply={applyPreset} />}
-        </div>
-      </div>
+      </CompactCtx.Provider>
     );
   }
 
