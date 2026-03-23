@@ -76,23 +76,72 @@ function getFollowUpPrompts(lastAssistantMsg: string, hadChanges: boolean): stri
   return [];
 }
 
+/* ── Word-level diff highlighting ── */
+function diffWords(before: string, after: string): { removed: string[]; added: string[] } {
+  const oldWords = before.split(/(\s+)/);
+  const newWords = after.split(/(\s+)/);
+  const oldSet = new Set(oldWords.filter(w => w.trim()));
+  const newSet = new Set(newWords.filter(w => w.trim()));
+  // Simple approach: words only in old = removed, words only in new = added
+  return {
+    removed: oldWords.filter(w => w.trim() && !newSet.has(w)),
+    added: newWords.filter(w => w.trim() && !oldSet.has(w)),
+  };
+}
+
+function HighlightedText({ text, highlights, mode }: { text: string; highlights: Set<string>; mode: "removed" | "added" }) {
+  const words = text.split(/(\s+)/);
+  const bgClass = mode === "removed" ? "bg-red-100 text-red-600 rounded px-0.5" : "bg-emerald-100 text-emerald-700 rounded px-0.5";
+  return (
+    <span>
+      {words.map((w, i) => {
+        if (!w.trim()) return <span key={i}>{w}</span>;
+        const isHighlighted = highlights.has(w);
+        return <span key={i} className={isHighlighted ? bgClass : ""}>{w}</span>;
+      })}
+    </span>
+  );
+}
+
 /* ── Diff Card Component ── */
 function DiffCard({ diffs }: { diffs: ChangeDiff[] }) {
   const [expanded, setExpanded] = useState(false);
   const shown = expanded ? diffs : diffs.slice(0, 2);
   return (
-    <div className="mt-3 space-y-2">
-      {shown.map((d, i) => (
-        <div key={i} className="rounded-xl border border-stone-200 overflow-hidden bg-white">
-          <div className="px-3.5 py-2 bg-stone-50 border-b border-stone-100">
-            <span className="text-xs font-medium text-stone-500 uppercase tracking-wide">{d.label}</span>
+    <div className="mt-3 space-y-2.5">
+      {shown.map((d, i) => {
+        const { removed, added } = diffWords(d.before, d.after);
+        const removedSet = new Set(removed);
+        const addedSet = new Set(added);
+        return (
+          <div key={i} className="rounded-xl border border-stone-200 overflow-hidden bg-white shadow-sm">
+            <div className="px-3.5 py-2 bg-gradient-to-r from-stone-50 to-white border-b border-stone-100 flex items-center gap-2">
+              <div className="w-1.5 h-1.5 rounded-full bg-[#005149]" />
+              <span className="text-xs font-semibold text-stone-600 tracking-wide">{d.label}</span>
+            </div>
+            <div className="px-3.5 py-3 space-y-0">
+              {/* Before */}
+              <div className="relative pl-3 py-2 border-l-2 border-red-200 bg-red-50/40 rounded-r-lg mb-2">
+                <span className="absolute -left-1.5 top-2.5 w-2.5 h-2.5 rounded-full bg-red-200 border-2 border-white" />
+                <div className="text-[13px] text-red-400 whitespace-pre-wrap leading-relaxed line-through decoration-red-300/60">
+                  <HighlightedText text={d.before} highlights={removedSet} mode="removed" />
+                </div>
+              </div>
+              {/* Arrow */}
+              <div className="flex items-center gap-1.5 py-0.5 pl-2">
+                <svg width="12" height="12" viewBox="0 0 12 12" className="text-[#005149]"><path d="M6 2v8m0 0l3-3m-3 3L3 7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none"/></svg>
+              </div>
+              {/* After */}
+              <div className="relative pl-3 py-2 border-l-2 border-emerald-300 bg-emerald-50/40 rounded-r-lg mt-1">
+                <span className="absolute -left-1.5 top-2.5 w-2.5 h-2.5 rounded-full bg-emerald-400 border-2 border-white" />
+                <div className="text-[13px] text-stone-800 whitespace-pre-wrap leading-relaxed">
+                  <HighlightedText text={d.after} highlights={addedSet} mode="added" />
+                </div>
+              </div>
+            </div>
           </div>
-          <div className="px-3.5 py-3 space-y-2">
-            <div className="text-sm text-stone-400 line-through whitespace-pre-wrap leading-relaxed">{d.before}</div>
-            <div className="text-sm text-stone-800 whitespace-pre-wrap leading-relaxed">{d.after}</div>
-          </div>
-        </div>
-      ))}
+        );
+      })}
       {diffs.length > 2 && (
         <button onClick={() => setExpanded(!expanded)}
           className="flex items-center gap-1 text-xs text-[#005149] font-medium hover:underline">
