@@ -15,6 +15,13 @@ body { background: #fafaf9; }
 }
 .highlight-update { animation: highlightFade 2s ease-out forwards; border-radius: 4px; }
 
+/* Mobile sidebar slide-in */
+@keyframes slideInLeft {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0); }
+}
+.animate-slide-in-left { animation: slideInLeft 0.2s ease-out forwards; }
+
 /* Fade in */
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(8px); }
@@ -44,27 +51,54 @@ body { background: #fafaf9; }
 }
 .animate-score { animation: drawCircle 1.5s ease-out forwards; }
 
-/* Page break indicator line */
-.page-break-line {
-  position: absolute;
-  left: 0;
-  right: 0;
-  height: 0;
-  border-top: 1px dashed #cbd5e1;
-  pointer-events: none;
-  z-index: 10;
+/* Multi-page paper effect — uses background to paint repeating pages */
+.resume-paper {
+  border-radius: 4px;
+  /* White paper with gray gap at every 11in mark */
+  background-color: white;
+  background-image:
+    linear-gradient(
+      to bottom,
+      white 0px,
+      white calc(11in - 1px),
+      /* Bottom shadow edge of page */
+      rgba(0,0,0,0.06) calc(11in - 1px),
+      rgba(0,0,0,0.03) 11in,
+      /* Gray gap between pages */
+      #ddd6 11in,
+      #e7e5e4 calc(11in + 4px),
+      #e7e5e4 calc(11in + 20px),
+      #ddd6 calc(11in + 24px),
+      /* Top shadow edge of next page */
+      rgba(0,0,0,0.03) calc(11in + 24px),
+      rgba(0,0,0,0.06) calc(11in + 25px),
+      white calc(11in + 25px)
+    );
+  background-size: 100% calc(11in + 25px);
+  background-repeat: repeat-y;
+  /* Paper shadow */
+  box-shadow: 0 4px 24px rgba(0,0,0,0.08), 0 1px 4px rgba(0,0,0,0.04);
 }
-.page-break-line::after {
-  content: 'page break';
+
+/* Page break spacer inserted in content flow */
+.page-break-gap-inline {
+  background: #e7e5e4;
+  position: relative;
+  box-shadow:
+    inset 0 3px 5px -2px rgba(0,0,0,0.08),
+    inset 0 -3px 5px -2px rgba(0,0,0,0.08);
+}
+
+.page-break-gap-label {
   position: absolute;
-  right: 8px;
-  top: -8px;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
   font-size: 9px;
   color: #a8a29e;
-  background: white;
-  padding: 0 4px;
   text-transform: uppercase;
   letter-spacing: 0.05em;
+  font-family: system-ui, sans-serif;
 }
 
 /* Resume section highlight pulse */

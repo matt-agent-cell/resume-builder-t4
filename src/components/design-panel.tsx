@@ -388,7 +388,7 @@ export default function DesignPanel({ onClose }: { onClose?: () => void }) {
       {/* Two-panel layout */}
       <div className="flex-1 flex overflow-hidden">
         {/* Left: category nav */}
-        <div className="w-[180px] shrink-0 border-r border-stone-100 py-2 px-2">
+        <div className="w-[60px] md:w-[180px] shrink-0 border-r border-stone-100 py-2 px-1 md:px-2">
           {CATEGORIES.map((cat) => {
             const Icon = cat.icon;
             const active = activeCategory === cat.id;
@@ -399,8 +399,8 @@ export default function DesignPanel({ onClose }: { onClose?: () => void }) {
                 }`}
               >
                 <Icon className="w-4 h-4 shrink-0" />
-                {cat.label}
-                <ChevronRight className={`w-3 h-3 ml-auto ${active ? "text-[#005149]" : "text-stone-300"}`} />
+                <span className="hidden md:inline">{cat.label}</span>
+                <ChevronRight className={`w-3 h-3 ml-auto hidden md:block ${active ? "text-[#005149]" : "text-stone-300"}`} />
               </button>
             );
           })}

@@ -65,7 +65,7 @@ function Welcome() {
         <div className="w-20 h-20 rounded-2xl bg-[#005149] flex items-center justify-center mx-auto mb-8 shadow-lg">
           <FileText className="w-10 h-10 text-white" />
         </div>
-        <h1 className="text-4xl font-bold text-[#005149] mb-4 tracking-tight">Build a resume that gets interviews</h1>
+        <h1 className="text-2xl md:text-4xl font-bold text-[#005149] mb-4 tracking-tight">Build a resume that gets interviews</h1>
         <p className="text-stone-400 text-lg mb-10 leading-relaxed">Upload your resume, then use AI chat to tailor it for any job.</p>
         <button onClick={() => setStep("upload")} className="bg-[#005149] text-white px-8 py-3.5 rounded-xl text-base font-medium hover:bg-[#003d38] transition-all hover:shadow-lg">
           Get started

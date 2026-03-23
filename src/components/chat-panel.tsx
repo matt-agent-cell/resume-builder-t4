@@ -75,7 +75,7 @@ function getFollowUpPrompts(lastAssistantMsg: string, hadChanges: boolean): stri
   return [];
 }
 
-export default function ChatPanel() {
+export default function ChatPanel({ onViewResume }: { onViewResume?: () => void } = {}) {
   const { messages, addMessages, updateLastAssistantMessage, applyResumeChanges, resume, updateResume, jobDescription, setJobDescription, setMatchAnalysis } = useResume();
   const [input, setInput] = useState("");
   const [streaming, setStreaming] = useState(false);
@@ -294,11 +294,17 @@ export default function ChatPanel() {
 
                   {/* Changes applied badge */}
                   {hadChanges && (
-                    <div className="mt-3">
+                    <div className="mt-3 flex items-center gap-2 flex-wrap">
                       <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#DBF0EA] text-[#005149] text-xs font-medium">
                         <CheckCircle2 className="w-3.5 h-3.5" />
                         Changes applied to resume
                       </span>
+                      {onViewResume && (
+                        <button onClick={onViewResume}
+                          className="md:hidden inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#005149] text-white text-xs font-medium hover:bg-[#003d38] transition-colors">
+                          View resume →
+                        </button>
+                      )}
                     </div>
                   )}
 

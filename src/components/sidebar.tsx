@@ -4,19 +4,20 @@ import { useResume } from "@/context/resume-context";
 import { MessageSquare, Plus, Archive, Trash2, FileText, PanelLeftClose, PanelLeft } from "lucide-react";
 import { useState } from "react";
 
-export default function Sidebar() {
+export default function Sidebar({ alwaysExpanded, onNavigate }: { alwaysExpanded?: boolean; onNavigate?: () => void } = {}) {
   const { sessions, activeSessionId, createSession, switchSession, deleteSession, sidebarView, setSidebarView } = useResume();
-  const [expanded, setExpanded] = useState(false);
+  const [expandedState, setExpanded] = useState(false);
+  const expanded = alwaysExpanded || expandedState;
   const [logoHover, setLogoHover] = useState(false);
 
   return (
     <div
-      className={`bg-stone-50 border-r border-stone-200 flex flex-col h-full shrink-0 transition-all duration-200 ease-in-out ${
-        expanded ? "w-[260px]" : "w-[52px]"
+      className={`bg-stone-50 flex flex-col h-full shrink-0 transition-all duration-200 ease-in-out ${
+        alwaysExpanded ? "w-full border-r-0" : expanded ? "w-[260px] border-r border-stone-200" : "w-[52px] border-r border-stone-200"
       }`}
     >
-      {/* Top: logo that becomes collapse/expand toggle on hover */}
-      <div className={`flex items-center h-11 border-b border-stone-200 ${expanded ? "px-3" : "px-0 justify-center"}`}>
+      {/* Top: logo that becomes collapse/expand toggle on hover — hidden in mobile drawer */}
+      <div className={`flex items-center h-11 border-b border-stone-200 ${alwaysExpanded ? "hidden" : ""} ${expanded ? "px-3" : "px-0 justify-center"}`}>
         {expanded ? (
           <div className="flex items-center gap-2 w-full">
             <button
@@ -52,7 +53,7 @@ export default function Sidebar() {
       {/* Actions + Nav */}
       <div className={`py-2 space-y-0.5 ${expanded ? "px-3" : "px-2"}`}>
         <button
-          onClick={() => { createSession(); setSidebarView("chat"); }}
+          onClick={() => { createSession(); setSidebarView("chat"); onNavigate?.(); }}
           className={`w-full flex items-center gap-2.5 rounded-lg text-stone-500 hover:bg-stone-100 transition-colors ${
             expanded ? "px-3 py-2 text-sm" : "justify-center py-2.5"
           }`}
@@ -62,7 +63,7 @@ export default function Sidebar() {
           {expanded && <span>New resume</span>}
         </button>
         <button
-          onClick={() => setSidebarView("chat")}
+          onClick={() => { setSidebarView("chat"); onNavigate?.(); }}
           className={`w-full flex items-center gap-2.5 rounded-lg transition-colors ${
             expanded ? "px-3 py-2 text-sm" : "justify-center py-2.5"
           } ${sidebarView === "chat" ? "bg-stone-200/60 text-stone-800 font-medium" : "text-stone-500 hover:bg-stone-100"}`}
@@ -72,7 +73,7 @@ export default function Sidebar() {
           {expanded && <span>Chat</span>}
         </button>
         <button
-          onClick={() => setSidebarView("vault")}
+          onClick={() => { setSidebarView("vault"); onNavigate?.(); }}
           className={`w-full flex items-center gap-2.5 rounded-lg transition-colors ${
             expanded ? "px-3 py-2 text-sm" : "justify-center py-2.5"
           } ${sidebarView === "vault" ? "bg-stone-200/60 text-stone-800 font-medium" : "text-stone-500 hover:bg-stone-100"}`}
@@ -99,7 +100,7 @@ export default function Sidebar() {
                         ? "bg-stone-200/50 text-stone-800"
                         : "text-stone-600 hover:bg-stone-100"
                     }`}
-                    onClick={() => { switchSession(s.id); setSidebarView("chat"); }}
+                    onClick={() => { switchSession(s.id); setSidebarView("chat"); onNavigate?.(); }}
                   >
                     <p className="text-sm truncate">{s.name}</p>
                     {sessions.length > 1 && (
