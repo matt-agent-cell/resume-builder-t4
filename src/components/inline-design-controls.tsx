@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { useResume } from "@/context/resume-context";
 import { defaultStyles } from "@/context/resume-context";
 import type { ResumeStyles } from "@/context/resume-context";
@@ -181,6 +182,58 @@ const WIDGETS: Record<string, {
 
 /* ── Main inline widget renderer ── */
 
+/* ── Mini Resume Preview (scaled down) ── */
+function MiniResumePreview({ styles }: { styles: ResumeStyles }) {
+  const { resume } = useResume();
+  if (!resume) return null;
+  const s = { ...defaultStyles, ...styles };
+  const mx = s.marginsX || s.margins || 32;
+  const my = s.marginsY || 28;
+  return (
+    <div className="w-full bg-stone-100 rounded-lg p-2 mb-3 overflow-hidden">
+      <div className="mx-auto bg-white rounded shadow-sm overflow-hidden" style={{ maxWidth: 280 }}>
+        <div style={{ padding: `${my * 0.35}px ${mx * 0.35}px`, fontFamily: s.fontFamily || "Inter" }}>
+          {/* Header */}
+          <div style={{ textAlign: s.headerAlign || "left", marginBottom: (s.sectionSpacing || 20) * 0.3 }}>
+            <div style={{ fontSize: (s.fontSize || 12) * (s.nameSize || 1.67) * 0.4, fontWeight: 700, color: s.headingColor || "#005149", lineHeight: 1.2 }}>
+              {resume.contact.name || "Your Name"}
+            </div>
+            <div style={{ fontSize: (s.fontSize || 12) * 0.35, color: "#78716c", marginTop: 2 }}>
+              {resume.contact.email || "email@example.com"} {resume.contact.phone ? `• ${resume.contact.phone}` : ""}
+            </div>
+          </div>
+          {/* Divider */}
+          {s.borderStyle !== "none" && (
+            <div style={{ borderBottom: `${Math.min(s.dividerWeight || 1, 2)}px ${s.borderStyle || "solid"} ${s.headingColor || "#005149"}20`, marginBottom: (s.sectionSpacing || 20) * 0.25 }} />
+          )}
+          {/* Summary lines */}
+          <div style={{ marginBottom: (s.sectionSpacing || 20) * 0.25 }}>
+            <div style={{ fontSize: (s.fontSize || 12) * (s.headingSize || 1) * 0.35, fontWeight: 600, color: s.headingColor || "#005149", textTransform: s.headingStyle === "uppercase" ? "uppercase" : s.headingStyle === "capitalize" ? "capitalize" : "none", marginBottom: 3 }}>
+              Summary
+            </div>
+            <div className="space-y-0.5">
+              <div className="h-1.5 bg-stone-200 rounded-full w-full" />
+              <div className="h-1.5 bg-stone-200 rounded-full w-4/5" />
+            </div>
+          </div>
+          {/* Experience lines */}
+          <div>
+            <div style={{ fontSize: (s.fontSize || 12) * (s.headingSize || 1) * 0.35, fontWeight: 600, color: s.headingColor || "#005149", textTransform: s.headingStyle === "uppercase" ? "uppercase" : s.headingStyle === "capitalize" ? "capitalize" : "none", marginBottom: 3 }}>
+              Experience
+            </div>
+            <div className="space-y-0.5">
+              <div className="h-1.5 bg-stone-300 rounded-full w-2/3" />
+              <div className="h-1.5 bg-stone-200 rounded-full w-full" />
+              <div className="h-1.5 bg-stone-200 rounded-full w-5/6" />
+              <div className="h-1.5 bg-stone-200 rounded-full w-full" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function InlineDesignWidget({ widgetId }: { widgetId: string }) {
   const { resume, updateResume } = useResume();
   if (!resume) return null;
@@ -193,8 +246,15 @@ export function InlineDesignWidget({ widgetId }: { widgetId: string }) {
     updateResume((r) => ({ ...r, styles: { ...(r.styles || defaultStyles), ...patch } }));
   };
 
+  // Show mini preview for visual-change widgets on mobile
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    setIsMobile(window.innerWidth < 768);
+  }, []);
+
   return (
     <div className="my-3 p-4 rounded-xl border border-stone-200 bg-stone-50/50">
+      {isMobile && <MiniResumePreview styles={s} />}
       <p className="text-xs font-semibold text-stone-500 uppercase tracking-wider mb-3">{widget.title}</p>
       {widget.render(s, update)}
     </div>
