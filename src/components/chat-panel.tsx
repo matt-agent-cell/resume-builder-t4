@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useResume } from "@/context/resume-context";
 import type { ChangeDiff } from "@/context/resume-context";
-import { Send, ThumbsUp, ThumbsDown, Copy, CheckCircle2, ImagePlus, ChevronDown, ChevronUp } from "lucide-react";
+import { Send, ThumbsUp, ThumbsDown, Copy, CheckCircle2, ImagePlus, ChevronDown, ChevronUp, Pencil, Check } from "lucide-react";
 import { InlineDesignWidget, parseDesignWidgets } from "./inline-design-controls";
 
 function stripJsonBlocks(text: string): { cleaned: string; hadChanges: boolean } {
@@ -103,45 +103,103 @@ function HighlightedText({ text, highlights, mode }: { text: string; highlights:
   );
 }
 
-/* ── Diff Card Component ── */
-function DiffCard({ diffs }: { diffs: ChangeDiff[] }) {
+/* ── Editable Diff Card ── */
+function EditableDiffItem({ diff, onSave }: { diff: ChangeDiff; onSave: (newText: string) => void }) {
+  const [editing, setEditing] = useState(false);
+  const [editText, setEditText] = useState(diff.after);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const { removed, added } = diffWords(diff.before, diff.after);
+  const removedSet = new Set(removed);
+  const addedSet = new Set(added);
+
+  useEffect(() => {
+    if (editing && textareaRef.current) {
+      textareaRef.current.focus();
+      textareaRef.current.style.height = "auto";
+      textareaRef.current.style.height = textareaRef.current.scrollHeight + "px";
+    }
+  }, [editing]);
+
+  const handleSave = () => {
+    const trimmed = editText.trim();
+    if (trimmed && trimmed !== diff.after) {
+      onSave(trimmed);
+    }
+    setEditing(false);
+  };
+
+  return (
+    <div className="rounded-xl border border-stone-200 overflow-hidden bg-white shadow-sm">
+      <div className="px-3.5 py-2 bg-gradient-to-r from-stone-50 to-white border-b border-stone-100 flex items-center gap-2">
+        <div className="w-1.5 h-1.5 rounded-full bg-[#005149]" />
+        <span className="text-xs font-semibold text-stone-600 tracking-wide flex-1">{diff.label}</span>
+        {!editing && (
+          <button onClick={() => setEditing(true)} className="p-1 rounded-md text-stone-400 hover:text-[#005149] hover:bg-stone-100 transition-colors">
+            <Pencil className="w-3 h-3" />
+          </button>
+        )}
+      </div>
+      <div className="px-3.5 py-3 space-y-0">
+        {/* Before */}
+        <div className="relative pl-3 py-2 border-l-2 border-red-200 bg-red-50/40 rounded-r-lg mb-2">
+          <span className="absolute -left-1.5 top-2.5 w-2.5 h-2.5 rounded-full bg-red-200 border-2 border-white" />
+          <div className="text-[13px] text-red-400 whitespace-pre-wrap leading-relaxed line-through decoration-red-300/60">
+            <HighlightedText text={diff.before} highlights={removedSet} mode="removed" />
+          </div>
+        </div>
+        {/* Arrow */}
+        <div className="flex items-center gap-1.5 py-0.5 pl-2">
+          <svg width="12" height="12" viewBox="0 0 12 12" className="text-[#005149]"><path d="M6 2v8m0 0l3-3m-3 3L3 7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none"/></svg>
+        </div>
+        {/* After — editable */}
+        {editing ? (
+          <div className="relative pl-3 py-2 border-l-2 border-[#005149] bg-[#DBF0EA]/30 rounded-r-lg mt-1">
+            <span className="absolute -left-1.5 top-2.5 w-2.5 h-2.5 rounded-full bg-[#005149] border-2 border-white" />
+            <textarea
+              ref={textareaRef}
+              value={editText}
+              onChange={(e) => {
+                setEditText(e.target.value);
+                e.target.style.height = "auto";
+                e.target.style.height = e.target.scrollHeight + "px";
+              }}
+              onKeyDown={(e) => { if (e.key === "Enter" && e.metaKey) handleSave(); }}
+              className="w-full text-[13px] text-stone-800 leading-relaxed bg-transparent outline-none resize-none"
+            />
+            <div className="flex items-center justify-end gap-2 mt-2">
+              <button onClick={() => { setEditText(diff.after); setEditing(false); }}
+                className="text-xs text-stone-400 hover:text-stone-600 px-2 py-1">Cancel</button>
+              <button onClick={handleSave}
+                className="flex items-center gap-1 text-xs font-medium text-white bg-[#005149] hover:bg-[#003d38] px-3 py-1.5 rounded-lg transition-colors">
+                <Check className="w-3 h-3" /> Save
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div
+            onClick={() => setEditing(true)}
+            className="relative pl-3 py-2 border-l-2 border-emerald-300 bg-emerald-50/40 rounded-r-lg mt-1 cursor-pointer hover:bg-emerald-50/70 transition-colors group"
+          >
+            <span className="absolute -left-1.5 top-2.5 w-2.5 h-2.5 rounded-full bg-emerald-400 border-2 border-white" />
+            <div className="text-[13px] text-stone-800 whitespace-pre-wrap leading-relaxed">
+              <HighlightedText text={diff.after} highlights={addedSet} mode="added" />
+            </div>
+            <span className="absolute top-2 right-2 text-[10px] text-stone-400 opacity-0 group-hover:opacity-100 md:block hidden transition-opacity">tap to edit</span>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function DiffCard({ diffs, onUpdateDiff }: { diffs: ChangeDiff[]; onUpdateDiff: (index: number, newText: string) => void }) {
   const [expanded, setExpanded] = useState(false);
   const shown = expanded ? diffs : diffs.slice(0, 2);
   return (
     <div className="mt-3 space-y-2.5">
-      {shown.map((d, i) => {
-        const { removed, added } = diffWords(d.before, d.after);
-        const removedSet = new Set(removed);
-        const addedSet = new Set(added);
-        return (
-          <div key={i} className="rounded-xl border border-stone-200 overflow-hidden bg-white shadow-sm">
-            <div className="px-3.5 py-2 bg-gradient-to-r from-stone-50 to-white border-b border-stone-100 flex items-center gap-2">
-              <div className="w-1.5 h-1.5 rounded-full bg-[#005149]" />
-              <span className="text-xs font-semibold text-stone-600 tracking-wide">{d.label}</span>
-            </div>
-            <div className="px-3.5 py-3 space-y-0">
-              {/* Before */}
-              <div className="relative pl-3 py-2 border-l-2 border-red-200 bg-red-50/40 rounded-r-lg mb-2">
-                <span className="absolute -left-1.5 top-2.5 w-2.5 h-2.5 rounded-full bg-red-200 border-2 border-white" />
-                <div className="text-[13px] text-red-400 whitespace-pre-wrap leading-relaxed line-through decoration-red-300/60">
-                  <HighlightedText text={d.before} highlights={removedSet} mode="removed" />
-                </div>
-              </div>
-              {/* Arrow */}
-              <div className="flex items-center gap-1.5 py-0.5 pl-2">
-                <svg width="12" height="12" viewBox="0 0 12 12" className="text-[#005149]"><path d="M6 2v8m0 0l3-3m-3 3L3 7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none"/></svg>
-              </div>
-              {/* After */}
-              <div className="relative pl-3 py-2 border-l-2 border-emerald-300 bg-emerald-50/40 rounded-r-lg mt-1">
-                <span className="absolute -left-1.5 top-2.5 w-2.5 h-2.5 rounded-full bg-emerald-400 border-2 border-white" />
-                <div className="text-[13px] text-stone-800 whitespace-pre-wrap leading-relaxed">
-                  <HighlightedText text={d.after} highlights={addedSet} mode="added" />
-                </div>
-              </div>
-            </div>
-          </div>
-        );
-      })}
+      {shown.map((d, i) => (
+        <EditableDiffItem key={i} diff={d} onSave={(newText) => onUpdateDiff(i, newText)} />
+      ))}
       {diffs.length > 2 && (
         <button onClick={() => setExpanded(!expanded)}
           className="flex items-center gap-1 text-xs text-[#005149] font-medium hover:underline">
@@ -161,6 +219,39 @@ export default function ChatPanel({ onViewResume }: { onViewResume?: () => void 
   const [messageDiffs, setMessageDiffs] = useState<Record<number, ChangeDiff[]>>({});
   const bottomRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Handle inline edits from diff cards
+  const handleDiffEdit = (msgIdx: number, diffIdx: number, newText: string) => {
+    const diff = messageDiffs[msgIdx]?.[diffIdx];
+    if (!diff) return;
+
+    // Parse the new text back into the right format and update resume
+    if (diff.section === "summary") {
+      updateResume((r) => ({ ...r, summary: newText }));
+    } else if (diff.section === "skills") {
+      updateResume((r) => ({ ...r, skills: newText.split(",").map(s => s.trim()).filter(Boolean) }));
+    } else if (diff.section === "experience" && diff.id && diff.isBullets) {
+      const bullets = newText.split("\n").map(b => b.replace(/^[•\-›]\s*/, "").trim()).filter(Boolean);
+      updateResume((r) => ({ ...r, experience: r.experience.map(e => e.id === diff.id ? { ...e, bullets } : e) }));
+    } else if (diff.section === "experience" && diff.id && diff.field) {
+      updateResume((r) => ({ ...r, experience: r.experience.map(e => e.id === diff.id ? { ...e, [diff.field!]: newText } : e) }));
+    } else if (diff.section === "education" && diff.id && diff.field) {
+      updateResume((r) => ({ ...r, education: r.education.map(e => e.id === diff.id ? { ...e, [diff.field!]: newText } : e) }));
+    } else if (diff.section === "contact" && diff.field) {
+      updateResume((r) => ({ ...r, contact: { ...r.contact, [diff.field!]: newText } }));
+    }
+
+    // Update the diff card's "after" text
+    setMessageDiffs((prev) => {
+      const updated = { ...prev };
+      if (updated[msgIdx]) {
+        updated[msgIdx] = updated[msgIdx].map((d, di) => di === diffIdx ? { ...d, after: newText } : d);
+      }
+      return updated;
+    });
+
+    showToast("✓ Resume updated");
+  };
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -382,7 +473,7 @@ export default function ChatPanel({ onViewResume }: { onViewResume?: () => void 
                     <>
                       {messageDiffs[i] && messageDiffs[i].length > 0 ? (
                         <>
-                          <DiffCard diffs={messageDiffs[i]} />
+                          <DiffCard diffs={messageDiffs[i]} onUpdateDiff={(di, text) => handleDiffEdit(i, di, text)} />
                           <div className="mt-2 flex items-center gap-2 flex-wrap">
                             <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#DBF0EA] text-[#005149] text-xs font-medium">
                               <CheckCircle2 className="w-3.5 h-3.5" />
