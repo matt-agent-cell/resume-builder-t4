@@ -169,7 +169,7 @@ function EditableDiffItem({ diff, onSave }: { diff: ChangeDiff; onSave: (newText
                 e.target.style.height = e.target.scrollHeight + "px";
               }}
               onKeyDown={(e) => { if (e.key === "Enter" && e.metaKey) handleSave(); }}
-              className="w-full text-[13px] text-stone-800 leading-relaxed bg-transparent outline-none resize-none"
+              className="w-full text-[16px] md:text-[13px] text-stone-800 leading-relaxed bg-transparent outline-none resize-none"
             />
             <div className="flex items-center justify-end gap-2 mt-2">
               <button onClick={() => { setEditText(diff.after); setEditing(false); }}
@@ -363,7 +363,7 @@ export default function ChatPanel({ onViewResume }: { onViewResume?: () => void 
     <div className="relative bg-stone-50 rounded-2xl border border-stone-200 focus-within:border-stone-300 transition-colors">
       <textarea
         ref={textareaRef}
-        className="w-full bg-transparent px-4 pt-3 pb-10 text-sm resize-none outline-none placeholder:text-stone-400 rounded-2xl"
+        className="w-full bg-transparent px-4 pt-3 pb-10 text-[16px] md:text-sm resize-none outline-none placeholder:text-stone-400 rounded-2xl"
         rows={1}
         placeholder={placeholder}
         value={input}
