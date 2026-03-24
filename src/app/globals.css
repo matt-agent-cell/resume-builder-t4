@@ -6,7 +6,8 @@
 .app-height { height: var(--app-height); }
 .app-min-height { min-height: var(--app-height); }
 
-body { background: #fafaf9; }
+body { background: #fafaf9; font-size: 16px; }
+@media (min-width: 768px) { body { font-size: 14px; } }
 
 /* Custom scrollbar */
 ::-webkit-scrollbar { width: 6px; }

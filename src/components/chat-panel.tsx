@@ -137,7 +137,7 @@ function EditableDiffItem({ diff, onSave }: { diff: ChangeDiff; onSave: (newText
     <div ref={cardRef} className="rounded-xl border border-stone-200 overflow-hidden bg-white shadow-sm">
       <div className="px-3.5 py-2 bg-gradient-to-r from-stone-50 to-white border-b border-stone-100 flex items-center gap-2">
         <div className="w-1.5 h-1.5 rounded-full bg-[#005149]" />
-        <span className="text-xs font-semibold text-stone-600 tracking-wide flex-1">{diff.label}</span>
+        <span className="text-sm md:text-xs font-semibold text-stone-600 tracking-wide flex-1">{diff.label}</span>
         {!editing && (
           <button onClick={() => setEditing(true)} className="p-1 rounded-md text-stone-400 hover:text-[#005149] hover:bg-stone-100 transition-colors">
             <Pencil className="w-3 h-3" />
@@ -148,7 +148,7 @@ function EditableDiffItem({ diff, onSave }: { diff: ChangeDiff; onSave: (newText
         {/* Before */}
         <div className="relative pl-3 py-2 border-l-2 border-red-200 bg-red-50/40 rounded-r-lg mb-2">
           <span className="absolute -left-1.5 top-2.5 w-2.5 h-2.5 rounded-full bg-red-200 border-2 border-white" />
-          <div className="text-[13px] text-red-400 whitespace-pre-wrap leading-relaxed line-through decoration-red-300/60">
+          <div className="text-base md:text-[13px] text-red-400 whitespace-pre-wrap leading-relaxed line-through decoration-red-300/60">
             <HighlightedText text={diff.before} highlights={removedSet} mode="removed" />
           </div>
         </div>
@@ -186,7 +186,7 @@ function EditableDiffItem({ diff, onSave }: { diff: ChangeDiff; onSave: (newText
             className="relative pl-3 py-2 border-l-2 border-emerald-300 bg-emerald-50/40 rounded-r-lg mt-1 cursor-pointer hover:bg-emerald-50/70 transition-colors group"
           >
             <span className="absolute -left-1.5 top-2.5 w-2.5 h-2.5 rounded-full bg-emerald-400 border-2 border-white" />
-            <div className="text-[13px] text-stone-800 whitespace-pre-wrap leading-relaxed">
+            <div className="text-base md:text-[13px] text-stone-800 whitespace-pre-wrap leading-relaxed">
               <HighlightedText text={diff.after} highlights={addedSet} mode="added" />
             </div>
             <span className="absolute top-2 right-2 text-[10px] text-stone-400 opacity-0 group-hover:opacity-100 md:block hidden transition-opacity">tap to edit</span>
@@ -437,7 +437,7 @@ export default function ChatPanel({ onViewResume }: { onViewResume?: () => void 
                 return (
                   <div key={i} className="animate-fade-in">
                     <div className="flex justify-end">
-                      <div className="max-w-[85%] bg-stone-100 rounded-2xl rounded-br-md px-4 py-3 text-sm text-stone-800 whitespace-pre-wrap">
+                      <div className="max-w-[85%] bg-stone-100 rounded-2xl rounded-br-md px-4 py-3 text-base md:text-sm text-stone-800 whitespace-pre-wrap">
                         {msg.content}
                       </div>
                     </div>
@@ -453,7 +453,7 @@ export default function ChatPanel({ onViewResume }: { onViewResume?: () => void 
 
               return (
                 <div key={i} className="animate-fade-in">
-                  <div className="text-sm text-stone-700 leading-relaxed">
+                  <div className="text-base md:text-sm text-stone-700 leading-relaxed">
                     {!cleaned && streaming && isLast ? (
                       <span className="flex items-center gap-1.5 py-2">
                         <span className="w-2 h-2 bg-stone-300 rounded-full typing-dot" />
@@ -516,7 +516,7 @@ export default function ChatPanel({ onViewResume }: { onViewResume?: () => void 
                         <button
                           key={fi}
                           onClick={() => sendMessage(f)}
-                          className="block w-full text-left px-4 py-2.5 rounded-xl border border-stone-200 text-sm text-[#005149] hover:bg-[#005149]/5 hover:border-[#005149]/20 transition-colors"
+                          className="block w-full text-left px-4 py-2.5 rounded-xl border border-stone-200 text-base md:text-sm text-[#005149] hover:bg-[#005149]/5 hover:border-[#005149]/20 transition-colors"
                         >
                           {f}
                         </button>
