@@ -1,5 +1,11 @@
 @import "tailwindcss";
 
+/* Use dynamic viewport height on mobile to avoid iOS Safari chrome overlap */
+:root { --app-height: 100vh; }
+@supports (height: 100dvh) { :root { --app-height: 100dvh; } }
+.app-height { height: var(--app-height); }
+.app-min-height { min-height: var(--app-height); }
+
 body { background: #fafaf9; }
 
 /* Custom scrollbar */

@@ -405,7 +405,7 @@ export default function ChatPanel({ onViewResume }: { onViewResume?: () => void 
       <div className="flex-1 overflow-y-auto">
         <div className="max-w-2xl mx-auto px-4 py-6">
           {messages.length === 0 && (
-            <div className="flex flex-col items-center justify-center min-h-[60vh]">
+            <div className="flex flex-col items-center justify-center" style={{ minHeight: "60dvh" }}>
               <h1 className="text-2xl font-semibold text-stone-800 mb-6">Let&apos;s Build Your Resume</h1>
               <div className="w-full mb-4">
                 {renderInput("Tell me about the job you're applying for")}

@@ -64,7 +64,7 @@ function AppContent() {
   // Mobile: Design mode — split view (resume preview top, design tray bottom)
   if (isMobile && mobileView === "design") {
     return (
-      <div className="h-screen flex flex-col bg-stone-100">
+      <div className="app-height flex flex-col bg-stone-100">
         {/* Compact header */}
         <header className="shrink-0 border-b border-stone-200 flex items-center px-3 bg-white gap-2 safe-area-top" style={{ minHeight: 44 }}>
           <button onClick={goBack} className="w-8 h-8 flex items-center justify-center rounded-lg text-stone-500 hover:bg-stone-100">
@@ -94,7 +94,7 @@ function AppContent() {
   // Mobile: other full-screen views
   if (isMobile && mobileView !== "chat") {
     return (
-      <div className="h-screen flex flex-col bg-white">
+      <div className="app-height flex flex-col bg-white">
         {/* Mobile overlay header */}
         <header className="shrink-0 border-b border-stone-200 flex items-center px-3 bg-white gap-2 safe-area-top" style={{ minHeight: 48 }}>
           <button onClick={goBack} className="w-8 h-8 flex items-center justify-center rounded-lg text-stone-500 hover:bg-stone-100">
@@ -129,7 +129,7 @@ function AppContent() {
   }
 
   return (
-    <div className="h-screen flex overflow-hidden bg-white">
+    <div className="app-height flex overflow-hidden bg-white">
       {/* Desktop sidebar */}
       <div className="hidden md:block">
         <Sidebar />

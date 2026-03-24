@@ -47,7 +47,7 @@ function ProgressDots({ current }: { current: Step }) {
 export default function Onboarding() {
   const ctx = useResume();
   return (
-    <div className="min-h-screen bg-gradient-to-b from-stone-50 to-white">
+    <div className="app-min-height bg-gradient-to-b from-stone-50 to-white">
       <ProgressDots current={ctx.step} />
       <div className="animate-fade-in">
         {ctx.step === "welcome" && <Welcome />}
