@@ -66,7 +66,7 @@ function AppContent() {
     return (
       <div className="h-screen flex flex-col bg-stone-100">
         {/* Compact header */}
-        <header className="h-11 shrink-0 border-b border-stone-200 flex items-center px-3 bg-white gap-2">
+        <header className="shrink-0 border-b border-stone-200 flex items-center px-3 bg-white gap-2 safe-area-top" style={{ minHeight: 44 }}>
           <button onClick={goBack} className="w-8 h-8 flex items-center justify-center rounded-lg text-stone-500 hover:bg-stone-100">
             <ChevronLeft className="w-5 h-5" />
           </button>
@@ -96,7 +96,7 @@ function AppContent() {
     return (
       <div className="h-screen flex flex-col bg-white">
         {/* Mobile overlay header */}
-        <header className="h-12 shrink-0 border-b border-stone-200 flex items-center px-3 bg-white gap-2">
+        <header className="shrink-0 border-b border-stone-200 flex items-center px-3 bg-white gap-2 safe-area-top" style={{ minHeight: 48 }}>
           <button onClick={goBack} className="w-8 h-8 flex items-center justify-center rounded-lg text-stone-500 hover:bg-stone-100">
             <ChevronLeft className="w-5 h-5" />
           </button>
@@ -153,7 +153,7 @@ function AppContent() {
 
       <div className="flex-1 min-w-0 flex flex-col">
         {/* Top bar */}
-        <header className="h-11 md:h-11 shrink-0 border-b border-stone-200 flex items-center justify-between px-2 md:px-3 bg-white">
+        <header className="h-11 md:h-11 shrink-0 border-b border-stone-200 flex items-center justify-between px-2 md:px-3 bg-white safe-area-top">
           {/* Left */}
           <div className="flex items-center gap-1.5">
             {/* Mobile hamburger */}

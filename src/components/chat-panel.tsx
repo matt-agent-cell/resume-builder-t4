@@ -112,11 +112,16 @@ function EditableDiffItem({ diff, onSave }: { diff: ChangeDiff; onSave: (newText
   const removedSet = new Set(removed);
   const addedSet = new Set(added);
 
+  const cardRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (editing && textareaRef.current) {
       textareaRef.current.focus();
       textareaRef.current.style.height = "auto";
       textareaRef.current.style.height = textareaRef.current.scrollHeight + "px";
+      // Scroll card into view after keyboard opens
+      setTimeout(() => {
+        cardRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+      }, 300);
     }
   }, [editing]);
 
@@ -129,7 +134,7 @@ function EditableDiffItem({ diff, onSave }: { diff: ChangeDiff; onSave: (newText
   };
 
   return (
-    <div className="rounded-xl border border-stone-200 overflow-hidden bg-white shadow-sm">
+    <div ref={cardRef} className="rounded-xl border border-stone-200 overflow-hidden bg-white shadow-sm">
       <div className="px-3.5 py-2 bg-gradient-to-r from-stone-50 to-white border-b border-stone-100 flex items-center gap-2">
         <div className="w-1.5 h-1.5 rounded-full bg-[#005149]" />
         <span className="text-xs font-semibold text-stone-600 tracking-wide flex-1">{diff.label}</span>
