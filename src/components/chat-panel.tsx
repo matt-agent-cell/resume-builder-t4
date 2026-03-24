@@ -554,16 +554,16 @@ export default function ChatPanel({ onViewResume }: { onViewResume?: () => void 
               );
             })}
           </div>
-          <div ref={bottomRef} />
+          <div ref={bottomRef} className="h-4" />
         </div>
       </div>
 
       {/* Bottom input — only show when conversation has started */}
       {messages.length > 0 && (
-        <div className="shrink-0 px-4 pb-4">
+        <div className="shrink-0 px-4 pb-3 safe-area-bottom">
           <div className="max-w-2xl mx-auto">
             {renderInput("Ask anything")}
-            <p className="text-center text-[11px] text-stone-300 mt-2">AI can make mistakes. Review resume changes carefully.</p>
+            <p className="text-center text-[11px] text-stone-300 mt-1.5 hidden md:block">AI can make mistakes. Review resume changes carefully.</p>
           </div>
         </div>
       )}

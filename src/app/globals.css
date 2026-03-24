@@ -17,8 +17,13 @@ body { background: #fafaf9; }
 
 /* Safe areas for iPhone notch/home bar */
 /* Safe areas for iPhone notch/home bar */
-.safe-area-top { padding-top: env(safe-area-inset-top, 0px); }
+.safe-area-top { padding-top: max(env(safe-area-inset-top, 0px), 0px); }
 .safe-area-bottom { padding-bottom: env(safe-area-inset-bottom, 0px); }
+
+/* Standalone/PWA mode gets extra top padding for status bar */
+@media all and (display-mode: standalone) {
+  .safe-area-top { padding-top: max(env(safe-area-inset-top, 0px), 20px); }
+}
 
 /* Hide scrollbar but keep scrolling */
 .no-scrollbar::-webkit-scrollbar { display: none; }
