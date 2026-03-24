@@ -9,13 +9,7 @@ export const metadata: Metadata = {
   description: "AI-powered resume builder",
 };
 
-export const viewport = {
-  width: "device-width",
-  initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
-  viewportFit: "cover" as const,
-};
+// viewport meta is set manually in <head> for viewport-fit=cover support
 
 export default function RootLayout({
   children,
@@ -24,6 +18,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+      </head>
       <body className={`${inter.className} antialiased`}>{children}</body>
     </html>
   );
